@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/*
+  GeoJoy Ventures design tokens.
+  Source of truth: Figma file "Website – Desktop" (variable collection "GeoJoy Web").
+  Use these tokens (bg-brown, text-ink, rounded-panel ...) instead of raw hex values.
+*/
+@theme {
+  /* Brand */
+  --color-brown: #563324;
+  --color-brown-light: #6e4636;
+  --color-tan: #a88c74;
+  --color-sand: #d3c1ad;
+  --color-sand-tint: #d9cdbe;
+  --color-terracotta: #a35339;
+  --color-terracotta-tint: #e6cfc4;
+
+  /* Surfaces */
+  --color-background: #e3e1dd;
+  --color-card: #eae8e4;
+  --color-image: #d5d0c9;
+  --color-field: #f3f1ee;
+
+  /* Text and lines */
+  --color-ink: #0d0705;
+  --color-muted: #655f59;
+  --color-line: #c9c5bf;
+
+  /* Status */
+  --color-success: #3f7a4f;
+  --color-success-tint: #dce7d8;
+  --color-warning: #a9741f;
+  --color-warning-tint: #f2e3c6;
+  --color-whatsapp: #25d366;
+
+  /* Type: Montserrat for headings, prices, buttons; Open Sans for body */
+  --font-heading: var(--font-montserrat), system-ui, sans-serif;
+  --font-sans: var(--font-open-sans), system-ui, sans-serif;
+
+  /* Radii (Get4Less scale) */
+  --radius-chip: 2px;
+  --radius-input: 4px;
+  --radius-panel: 8px;
+  --radius-pill: 27px;
+
+  /* Elevation */
+  --shadow-panel: 0 3px 22px rgb(15 15 15 / 0.07);
+}
+
+html {
+  background: var(--color-background);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brown);
+  outline-offset: 2px;
+}

@@ -1,0 +1,60 @@
+Product,Category,Variant / Size,Unit Price (GHS),Times on Sales List,Confirm With Client
+Blender,Kitchen Appliances,Standard,500,2,
+4-in-1 Blender,Kitchen Appliances,Standard,550,2,
+Electric Kettle,Kitchen Appliances,Model A,150,6,Five different prices recorded - confirm models/brands for each
+Electric Kettle,Kitchen Appliances,Model B,170,,
+Electric Kettle,Kitchen Appliances,Model C,200,,
+Electric Kettle,Kitchen Appliances,Model D,250,,
+Electric Kettle,Kitchen Appliances,Model E,300,,
+Juicer,Kitchen Appliances,Standard,800,1,
+Rice Cooker,Kitchen Appliances,Standard,500,1,
+Air Fryer,Kitchen Appliances,Standard,600,1,
+Sandwich Maker,Kitchen Appliances,Standard,250,1,
+Food Warmer,Kitchen Appliances,Small,300,2,Confirm sizes
+Food Warmer,Kitchen Appliances,Large,650,,
+Hot Plate,Kitchen Appliances,Small,250,3,
+Hot Plate,Kitchen Appliances,Big,600,,
+Winning Star 5L,Kitchen Appliances,5L,350,2,Confirm what the item is (kettle/blender/cooker?)
+Hot Chef,Cookware,Standard,1100,1,Confirm what the item is
+Cooking Pot,Cookware,Standard,500,2,
+Pot ("Pod" in notes),Cookware,Size A,500,9,Most frequent item - confirm name and sizes
+Pot ("Pod" in notes),Cookware,Size B,600,,
+Cast Iron Pot/Pan,Cookware,Standard,2000,1,
+Non-Stick Set,Cookware,Black,1500,1,
+Utensil Set,Cookware,Full set,1400,1,
+Utensil Set,Cookware,Big,450,1,
+Dinner Utensil Set,Cookware,Standard,150,1,
+Kitchen Rack,Storage & Organisation,Standard,300,2,
+Dish Drainer,Storage & Organisation,Standard,350,1,
+Storage Container,Storage & Organisation,Standard,250,1,
+"Tiele" (unclear),Storage & Organisation,Standard,600,2,Handwriting unclear - confirm product name
+"Tiele" (unclear),Storage & Organisation,Small,350,1,
+"Tiele" Box,Storage & Organisation,Standard,600,1,Recorded as 2 for 1200
+"Tiele" Container,Storage & Organisation,Standard,350,1,Recorded as 2 for 700
+Basket,Storage & Organisation,Standard,70,2,Recorded as 2 for 140
+Ice Chest,Storage & Organisation,Small,50,2,50 looks very low - confirm
+Ice Chest,Storage & Organisation,Large,1200,,
+Dry Line (clothes drying rack),Laundry,Model A,300,5,Confirm models
+Dry Line (clothes drying rack),Laundry,Model B,350,,
+Dry Line (clothes drying rack),Laundry,Model C,600,,
+Cloth Rack,Laundry,Standard,200,1,
+Ironing Board,Laundry,Standard,250,1,
+Mop / Wipe,Cleaning,Model A,400,3,Handwriting unclear - confirm product
+Mop / Wipe,Cleaning,Model B,450,,
+Toilet Rack,Bathroom,Small,200,3,
+Toilet Rack,Bathroom,Medium,350,,
+Toilet Rack,Bathroom,Large,2500,,2500 is far above the others - confirm
+Toilet Mat,Bathroom,Standard,70,1,
+Washroom Mat,Bathroom,Standard,30,1,
+Door Mat,Mats,Standard,25,3,
+Door Mat,Mats,Big,30,,
+Door Mat,Mats,Premium,200,,Confirm - much higher than other door mats
+Silk Door Mat,Mats,Standard,25,1,
+Big Mat,Mats,Standard,30,1,
+Car Mat,Mats,Standard,25,1,
+Table Mat,Mats,Standard,200,1,
+Table,Furniture,Standard,450,1,
+Table,Furniture,Small,330,1,
+Table,Furniture,Big Round,400,1,
+Chairs,Furniture,Set of 4,800,1,
+Diaper (unclear),Other,Standard,700,1,Handwriting unclear - confirm product
