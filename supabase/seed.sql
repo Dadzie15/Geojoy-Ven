@@ -302,12 +302,17 @@ on conflict (sku) do update
       sort_order = excluded.sort_order;
 
 -- -----------------------------------------------------------------------------
--- Banner
+-- Banner (banners has no unique key: update by title, insert if missing)
 -- -----------------------------------------------------------------------------
+update banners
+  set subtitle = 'Save on air fryers, blenders and non-stick cookware. Pay securely with Mobile Money.',
+      link_url = '/deals'
+  where title = 'Kitchen essentials week';
+
 insert into banners (title, subtitle, image_url, link_url, sort_order, is_active)
 select
   'Kitchen essentials week',
-  'Up to 15% off blenders, air fryers and food warmers. Pay securely with Mobile Money.',
+  'Save on air fryers, blenders and non-stick cookware. Pay securely with Mobile Money.',
   null,
   '/deals',
   1,
