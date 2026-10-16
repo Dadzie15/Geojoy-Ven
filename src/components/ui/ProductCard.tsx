@@ -46,7 +46,8 @@ export function ProductCard({
   const shownBadge = inStock ? badge : { label: "Out of stock", tone: "neutral" as const };
 
   return (
-    <article className="relative flex flex-col gap-3">
+    // Full height of its grid or row cell, so the price row (and "+") lines up across a row.
+    <article className="relative flex h-full flex-col gap-3">
       <Thumbnail image={image} ratio={imageRatio} sizes={imageSizes}>
         {shownBadge && (
           <Badge tone={shownBadge.tone} className="absolute top-2 left-2">
@@ -65,34 +66,32 @@ export function ProductCard({
           </button>
         )}
       </Thumbnail>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-1 flex-col gap-1">
         <p className="text-xs text-muted">{category}</p>
-        {/* Wraps so a long price ("From ₵1,250") drops below the name on narrow cards. */}
-        <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-0.5">
-          <h3 className="min-w-0 text-sm font-medium text-ink">
-            <Link href={href} className="after:absolute after:inset-0 hover:text-brown-light">
-              {name}
-            </Link>
-          </h3>
-          <p className="shrink-0 font-heading text-base font-bold text-ink">
-            {priceFrom && "From "}
-            {formatCedis(price)}
-          </p>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          {oldPrice ? (
-            <p className="text-xs text-muted">
-              <span className="sr-only">Was </span>
-              <s>{formatCedis(oldPrice)}</s>
+        <h3 className="text-sm font-medium text-ink">
+          <Link href={href} className="after:absolute after:inset-0 hover:text-brown-light">
+            {name}
+          </Link>
+        </h3>
+        {/* Pinned to the bottom, so it lines up across a row however the name wraps. */}
+        <div className="mt-auto flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-heading text-base font-bold text-ink">
+              {priceFrom && "From "}
+              {formatCedis(price)}
             </p>
-          ) : (
-            <span />
-          )}
+            {oldPrice ? (
+              <p className="text-xs text-muted">
+                <span className="sr-only">Was </span>
+                <s>{formatCedis(oldPrice)}</s>
+              </p>
+            ) : null}
+          </div>
           {chooseOptions ? (
             <Link
               href={href}
               aria-label={`Choose options for ${name}`}
-              className="group relative z-10 -mr-1.5 grid size-11 place-items-center"
+              className="group relative z-10 -mr-1.5 -mb-1.5 grid size-11 place-items-center"
             >
               <span className={plusClasses}>
                 <Plus className="size-4" {...iconProps} />
@@ -102,7 +101,7 @@ export function ProductCard({
             <button
               type="button"
               aria-label={`Add ${name} to bag`}
-              className="group relative z-10 -mr-1.5 grid size-11 place-items-center"
+              className="group relative z-10 -mr-1.5 -mb-1.5 grid size-11 place-items-center"
             >
               <span className={plusClasses}>
                 <Plus className="size-4" {...iconProps} />

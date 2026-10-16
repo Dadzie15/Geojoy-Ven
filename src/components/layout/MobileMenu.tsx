@@ -83,6 +83,7 @@ export function MobileMenu({ trigger, categories }: MobileMenuProps) {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
+          data-menu-open={open || undefined}
           onClick={closeOnLinkClick}
           className={cn(
             "absolute inset-y-0 left-0 flex w-4/5 max-w-sm flex-col overflow-y-auto bg-background shadow-panel transition-transform duration-200 motion-reduce:transition-none",

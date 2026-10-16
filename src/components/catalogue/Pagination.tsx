@@ -33,7 +33,8 @@ const linkClasses = cn(boxClasses, "border-line bg-field text-ink hover:bg-sand-
 
 /**
  * Numbered pagination as plain links (?page=n), so it works without JavaScript and the back button
- * returns to the previous page. Phones show previous, current and next only.
+ * returns to the previous page. Under 640 px: previous, "Page 1 of 2", next. Under 768 px: previous,
+ * current and next.
  */
 export function Pagination({ page, pageCount, hrefFor }: PaginationProps) {
   if (pageCount <= 1) return null;
@@ -53,13 +54,16 @@ export function Pagination({ page, pageCount, hrefFor }: PaginationProps) {
     <nav aria-label="Pagination">
       <ul className="flex items-center justify-center gap-2">
         <li>{step(page - 1, "Previous page", ChevronLeft)}</li>
+        <li className="px-2 text-sm text-ink sm:hidden">
+          Page {page} of {pageCount}
+        </li>
         {pageItems(page, pageCount).map((item, index) =>
           item === null ? (
             <li key={`gap-${index}`} aria-hidden="true" className="grid size-11 place-items-center text-muted max-md:hidden">
               …
             </li>
           ) : (
-            <li key={item} className={cn(item !== page && "max-md:hidden")}>
+            <li key={item} className={item === page ? "max-sm:hidden" : "max-md:hidden"}>
               <Link
                 href={hrefFor(item)}
                 aria-label={`Page ${item}`}
