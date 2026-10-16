@@ -1,10 +1,11 @@
-import type { InputHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 import { FieldMessage, fieldMessageId, type FieldTextProps } from "./Field";
 
 type CheckboxProps = FieldTextProps &
   Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "type"> & {
     id: string;
-    label: string;
+    /** Text, or text plus extras such as a count. */
+    label: ReactNode;
   };
 
 export function Checkbox({ id, label, helper, error, ...rest }: CheckboxProps) {
