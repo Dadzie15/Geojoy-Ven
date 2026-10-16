@@ -1,17 +1,19 @@
 "use client";
 
-import { ChevronRight, Heart, Menu, Tag, User, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Heart, Menu, Tag, User, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useId, useRef, useState, type MouseEvent } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { iconProps } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/Logo";
 import { useModal } from "@/hooks/useModal";
+import type { MenuCategory } from "@/lib/catalogue/types";
 import { cn } from "@/lib/cn";
+import { sentenceCase } from "@/lib/format";
 import {
   aboutLink,
   accountLink,
-  categoryLinks,
+  categoryHref,
   contactLink,
   dealsLink,
   savedLink,
@@ -19,15 +21,18 @@ import {
 } from "@/lib/navigation";
 
 type MobileMenuProps = {
-  /** "icon": hamburger button for phones. "categories": the brown "All categories" button. */
+  /** "icon": hamburger button for phones. "categories": the brown "All categories" button (tablets). */
   trigger: "icon" | "categories";
+  categories: MenuCategory[];
 };
 
 const rowClasses = "flex min-h-12 items-center gap-3 px-4 text-sm text-ink hover:bg-card";
 
-/** Slide-out menu with categories, account and help links. */
-export function MobileMenu({ trigger }: MobileMenuProps) {
+/** Slide-out menu with categories (children in an accordion), account and help links. */
+export function MobileMenu({ trigger, categories }: MobileMenuProps) {
   const [open, setOpen] = useState(false);
+  /** Slug of the category whose children are shown. */
+  const [expanded, setExpanded] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
@@ -118,20 +123,58 @@ export function MobileMenu({ trigger }: MobileMenuProps) {
               Categories
             </h2>
             <ul>
-              {categoryLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className={cn(rowClasses, "justify-between font-heading font-medium")}>
-                    {link.label}
-                    <ChevronRight className="size-4 text-muted" {...iconProps} />
-                  </Link>
-                </li>
-              ))}
               <li>
                 <Link href={dealsLink.href} className={cn(rowClasses, "font-heading font-semibold text-terracotta")}>
                   <Tag className="size-4" {...iconProps} />
                   {dealsLink.label}
                 </Link>
               </li>
+              {categories.map((category) => {
+                if (category.children.length === 0) {
+                  return (
+                    <li key={category.slug}>
+                      <Link
+                        href={categoryHref(category.slug)}
+                        className={cn(rowClasses, "justify-between font-heading font-medium")}
+                      >
+                        {sentenceCase(category.name)}
+                        <ChevronRight className="size-4 text-muted" {...iconProps} />
+                      </Link>
+                    </li>
+                  );
+                }
+
+                const isExpanded = expanded === category.slug;
+                const listId = `${panelId}-${category.slug}`;
+                return (
+                  <li key={category.slug}>
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      aria-controls={listId}
+                      onClick={() => setExpanded(isExpanded ? null : category.slug)}
+                      className={cn(rowClasses, "w-full justify-between text-left font-heading font-medium")}
+                    >
+                      {sentenceCase(category.name)}
+                      <ChevronDown className={cn("size-4 text-muted", isExpanded && "rotate-180")} {...iconProps} />
+                    </button>
+                    <ul id={listId} hidden={!isExpanded} className="pb-2">
+                      <li>
+                        <Link href={categoryHref(category.slug)} className={cn(rowClasses, "pl-8 font-semibold")}>
+                          View all {category.name.toLowerCase()}
+                        </Link>
+                      </li>
+                      {category.children.map((child) => (
+                        <li key={child.slug}>
+                          <Link href={categoryHref(child.slug)} className={cn(rowClasses, "pl-8")}>
+                            {sentenceCase(child.name)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
