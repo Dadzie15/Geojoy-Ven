@@ -15,7 +15,7 @@ export function TrustStrip() {
       <h2 id="trust-title" className="sr-only">
         Why shop with us
       </h2>
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-5 lg:flex lg:justify-between">
+      <ul className="grid gap-4 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-5 lg:flex lg:justify-between">
         {items.map((item) => (
           <li key={item.title}>
             <TrustItem {...item} />

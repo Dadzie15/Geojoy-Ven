@@ -55,7 +55,13 @@ export function HeroBanner({ banners }: HeroBannerProps) {
           </div>
         )}
       </div>
-      <div className="relative aspect-[7/4] overflow-hidden rounded-panel bg-image">
+      {/* Without a photo the plain block only shows from 768 px, so phones get the text alone. */}
+      <div
+        className={cn(
+          "relative aspect-[7/4] overflow-hidden rounded-panel bg-image",
+          !banner.imageUrl && "hidden md:block",
+        )}
+      >
         {banner.imageUrl && (
           <Image
             src={banner.imageUrl}

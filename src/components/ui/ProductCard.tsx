@@ -17,6 +17,8 @@ export type ProductCardProps = {
   priceFrom?: boolean;
   /** False shows an "Out of stock" badge. */
   inStock?: boolean;
+  /** Shows the save (heart) button. Off until saved items arrive (Phase 5). */
+  showSave?: boolean;
   /** "+" links to the product page to choose options, instead of adding to the bag. */
   chooseOptions?: boolean;
   imageRatio?: ThumbnailRatio;
@@ -36,6 +38,7 @@ export function ProductCard({
   badge,
   priceFrom = false,
   inStock = true,
+  showSave = false,
   chooseOptions = false,
   imageRatio,
   imageSizes,
@@ -50,15 +53,17 @@ export function ProductCard({
             {shownBadge.label}
           </Badge>
         )}
-        <button
-          type="button"
-          aria-label={`Save ${name}`}
-          className="group absolute top-0.5 right-0.5 z-10 grid size-11 place-items-center"
-        >
-          <span className="grid size-8 place-items-center rounded-full bg-field text-ink transition-colors group-hover:text-terracotta motion-reduce:transition-none">
-            <Heart className="size-4" {...iconProps} />
-          </span>
-        </button>
+        {showSave && (
+          <button
+            type="button"
+            aria-label={`Save ${name}`}
+            className="group absolute top-0.5 right-0.5 z-10 grid size-11 place-items-center"
+          >
+            <span className="grid size-8 place-items-center rounded-full bg-field text-ink transition-colors group-hover:text-terracotta motion-reduce:transition-none">
+              <Heart className="size-4" {...iconProps} />
+            </span>
+          </button>
+        )}
       </Thumbnail>
       <div className="flex flex-col gap-1">
         <p className="text-xs text-muted">{category}</p>

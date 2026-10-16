@@ -23,7 +23,7 @@ const MAX_PAGE_SIZE = 60;
 
 // Money columns are cast to text so numeric(10,2) values arrive as exact strings.
 const CARD_COLUMNS =
-  "id, slug, name, price::text, compare_at_price::text, categories(name), product_variants(price::text, stock), product_images(url, alt)";
+  "id, slug, name, price::text, compare_at_price::text, category_id, categories(name), product_variants(price::text, stock), product_images(url, alt)";
 
 /** Product row as selected by CARD_COLUMNS. */
 export type ProductCardRow = {
@@ -32,25 +32,39 @@ export type ProductCardRow = {
   name: string;
   price: Money;
   compare_at_price: Money | null;
+  category_id: string | null;
   categories: { name: string } | null;
   product_variants: { price: Money; stock: number }[];
   product_images: { url: string; alt: string }[];
 };
 
-/** Turns a product row into ProductCard props. No image gives the card's placeholder. */
-export function toProductCard(row: ProductCardRow): ProductCardData {
+/**
+ * Turns a product row into ProductCard props. No image gives the card's placeholder.
+ * categoryName defaults to the product's own category; listings pass the top-level name.
+ */
+export function toProductCard(row: ProductCardRow, categoryName = row.categories?.name ?? ""): ProductCardData {
   const image = row.product_images[0];
   return {
     id: row.id,
     href: `/product/${row.slug}`,
     name: row.name,
-    category: row.categories?.name ?? "",
+    category: categoryName,
     price: row.price,
     oldPrice: row.compare_at_price ?? undefined,
     image: image ? { src: image.url, alt: image.alt || row.name } : undefined,
     priceFrom: new Set(row.product_variants.map((variant) => variant.price)).size > 1,
     inStock: row.product_variants.some((variant) => variant.stock > 0),
   };
+}
+
+/** A card mapper that labels each product with its top-level category ("Kitchen Appliances"), as the design shows. */
+async function topLevelCardMapper() {
+  const topLevel = new Map<string, string>();
+  for (const top of await getCategoryTree()) {
+    topLevel.set(top.id, top.name);
+    for (const child of top.children) topLevel.set(child.id, top.name);
+  }
+  return (row: ProductCardRow) => toProductCard(row, row.category_id ? topLevel.get(row.category_id) : undefined);
 }
 
 // ---------------------------------------------------------------------------
@@ -136,17 +150,21 @@ async function findProducts(
   }
 
   const from = (page - 1) * pageSize;
-  const { data, count, error } = await query
-    .order("sort_order", { referencedTable: "product_images" })
-    .limit(1, { referencedTable: "product_images" })
-    .range(from, from + pageSize - 1)
-    .overrideTypes<ProductCardRow[], { merge: false }>();
+  // The category tree is cached per request, so the mapper runs alongside the query.
+  const [{ data, count, error }, toCard] = await Promise.all([
+    query
+      .order("sort_order", { referencedTable: "product_images" })
+      .limit(1, { referencedTable: "product_images" })
+      .range(from, from + pageSize - 1)
+      .overrideTypes<ProductCardRow[], { merge: false }>(),
+    topLevelCardMapper(),
+  ]);
 
   // PGRST103: the page is past the last result.
   if (error?.code === "PGRST103") return empty;
   if (error) throw new Error(`Could not load products: ${error.message}`);
 
-  return { items: data.map(toProductCard), total: count ?? 0, page, pageSize };
+  return { items: data.map(toCard), total: count ?? 0, page, pageSize };
 }
 
 // ---------------------------------------------------------------------------
@@ -241,23 +259,26 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
 /** Other active products in the same category, most popular first. One round trip via the product's category. */
 export async function getRelatedProducts(productId: string, limit = 4): Promise<ProductCardData[]> {
   const related = "categories.products";
-  const { data, error } = await createPublicClient()
-    .from("products")
-    .select(`categories(products(${CARD_COLUMNS}))`)
-    .eq("id", productId)
-    .eq("is_active", true)
-    .eq(`${related}.is_active`, true)
-    .neq(`${related}.id`, productId)
-    .order("popularity", { referencedTable: related, ascending: false })
-    .order("name", { referencedTable: related })
-    .limit(limit, { referencedTable: related })
-    .order("sort_order", { referencedTable: `${related}.product_images` })
-    .limit(1, { referencedTable: `${related}.product_images` })
-    .maybeSingle()
-    .overrideTypes<{ categories: { products: ProductCardRow[] } | null } | null, { merge: false }>();
+  const [{ data, error }, toCard] = await Promise.all([
+    createPublicClient()
+      .from("products")
+      .select(`categories(products(${CARD_COLUMNS}))`)
+      .eq("id", productId)
+      .eq("is_active", true)
+      .eq(`${related}.is_active`, true)
+      .neq(`${related}.id`, productId)
+      .order("popularity", { referencedTable: related, ascending: false })
+      .order("name", { referencedTable: related })
+      .limit(limit, { referencedTable: related })
+      .order("sort_order", { referencedTable: `${related}.product_images` })
+      .limit(1, { referencedTable: `${related}.product_images` })
+      .maybeSingle()
+      .overrideTypes<{ categories: { products: ProductCardRow[] } | null } | null, { merge: false }>(),
+    topLevelCardMapper(),
+  ]);
   if (error) throw new Error(`Could not load related products: ${error.message}`);
 
-  return (data?.categories?.products ?? []).map(toProductCard);
+  return (data?.categories?.products ?? []).map(toCard);
 }
 
 /** Lowest and highest product price in a category or a search, for the price filter; null when nothing matches. */
