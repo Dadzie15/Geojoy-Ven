@@ -1,31 +1,90 @@
+import type { Metadata } from "next";
+import { Container } from "@/components/layout/Container";
+import { ProductRow } from "@/components/catalogue/ProductRow";
+import { CategoryExploreStrip } from "@/components/home/CategoryExploreStrip";
+import { CategoryShortcuts } from "@/components/home/CategoryShortcuts";
+import { HeroBanner } from "@/components/home/HeroBanner";
+import { KitchenAppliances } from "@/components/home/KitchenAppliances";
+import { TrustStrip } from "@/components/home/TrustStrip";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
-import { generalTopics } from "@/lib/whatsapp";
+import { getActiveBanners, getCategoryTree, listProducts } from "@/lib/catalogue";
+import { homeTopics } from "@/lib/whatsapp";
 
-// Placeholder home page. Replace it in build phase 2 (see docs/build-plan.md).
-export default function HomePage() {
-  const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "233557843743";
+// Static, refreshed hourly; admin changes refresh it sooner with revalidateTag("catalogue").
+export const revalidate = 3600;
+
+const title = "GeoJoy Ventures | Kitchen appliances and household goods in Ghana";
+const description =
+  "Shop kitchen appliances, cookware and household goods, delivered anywhere in Ghana. Pay securely with Mobile Money.";
+
+export const metadata: Metadata = {
+  title: { absolute: title },
+  description,
+  alternates: { canonical: "/" },
+  openGraph: { type: "website", url: "/", siteName: "GeoJoy Ventures", locale: "en_GH", title, description },
+};
+
+const KITCHEN_SLUG = "kitchen-appliances";
+const ROW_SIZE = 10;
+const GRID_SIZE = 6;
+
+export default async function HomePage() {
+  const [banners, tree, promotions, newArrivals, kitchen, kitchenByChild, cookware, homeAndLaundry] =
+    await Promise.all([
+      getActiveBanners(),
+      getCategoryTree(),
+      listProducts({ onSale: true, sort: "popular", pageSize: ROW_SIZE }),
+      listProducts({ sort: "newest", pageSize: ROW_SIZE }),
+      listProducts({ category: KITCHEN_SLUG, pageSize: GRID_SIZE }),
+      // The tree is cached per request, so this reuses the call above.
+      getCategoryTree().then((categories) =>
+        Promise.all(
+          (categories.find((category) => category.slug === KITCHEN_SLUG)?.children ?? []).map(async (child) => ({
+            child,
+            products: (await listProducts({ subcategory: child.slug, pageSize: GRID_SIZE })).items,
+          })),
+        ),
+      ),
+      listProducts({ category: "cookware", pageSize: ROW_SIZE }),
+      listProducts({ category: ["laundry", "bathroom", "mats", "storage"], pageSize: ROW_SIZE }),
+    ]);
+
+  const kitchenCategory = tree.find((category) => category.slug === KITCHEN_SLUG);
 
   return (
     <>
-      <main className="mx-auto flex min-h-dvh max-w-3xl flex-col justify-center gap-6 px-4 py-16 sm:px-6">
-        <p className="text-sm font-semibold text-terracotta">Coming soon</p>
-        <h1 className="text-3xl text-brown sm:text-5xl">GeoJoy Ventures</h1>
-        <p className="max-w-prose text-lg text-muted">
-          Kitchen appliances, cookware and household essentials, delivered anywhere in Ghana.
-          Pay securely with Mobile Money.
-        </p>
-        <div className="rounded-panel bg-card p-6 shadow-panel">
-          <p className="font-heading font-semibold">Need something today?</p>
-          <p className="mt-1 text-muted">Chat with us on WhatsApp, Monday to Friday, 9am to 7pm.</p>
-          <a
-            href={`https://wa.me/${whatsapp}`}
-            className="mt-4 inline-flex min-h-11 items-center rounded-input bg-whatsapp px-5 font-heading font-bold text-ink"
-          >
-            Chat on WhatsApp
-          </a>
-        </div>
+      <main className="py-6">
+        <Container className="flex flex-col gap-6">
+          {banners.length > 0 ? (
+            <HeroBanner banners={banners} />
+          ) : (
+            <h1 className="sr-only">GeoJoy Ventures: kitchen appliances and household goods in Ghana</h1>
+          )}
+          <TrustStrip />
+          <CategoryShortcuts categories={tree.slice(0, 8)} />
+          <ProductRow id="promotion" title="Promotion" href="/deals" products={promotions.items} />
+          <ProductRow
+            id="new-arrivals"
+            title="New arrivals"
+            href="/products?sort=newest"
+            products={newArrivals.items}
+          />
+          <CategoryExploreStrip
+            categories={tree.map(({ id, name, slug, productCount }) => ({ id, name, slug, productCount }))}
+          />
+          {kitchenCategory && (
+            <KitchenAppliances category={kitchenCategory} products={kitchen.items} byChild={kitchenByChild} />
+          )}
+          <ProductRow id="cookware" title="Cookware" href="/category/cookware" products={cookware.items} />
+          <ProductRow
+            id="home-and-laundry"
+            title="Home & laundry"
+            href="/category/laundry"
+            products={homeAndLaundry.items}
+          />
+        </Container>
       </main>
-      <WhatsAppButton topics={generalTopics} />
+      <WhatsAppButton topics={homeTopics} />
     </>
   );
 }
