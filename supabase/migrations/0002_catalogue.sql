@@ -42,6 +42,9 @@ create or replace function search_products(q text)
 returns setof products
 language sql stable security invoker
 set search_path = public, extensions
+-- pg_trgm's default word-similarity threshold is 0.6; 0.5 (this function only)
+-- lets one-letter typos such as "kettel" or "blendr" still match.
+set pg_trgm.word_similarity_threshold = 0.5
 as $$
   with query as (
     select
