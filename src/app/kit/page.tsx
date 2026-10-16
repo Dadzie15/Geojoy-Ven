@@ -17,6 +17,8 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Select } from "@/components/ui/Select";
 import { TrustItem } from "@/components/ui/TrustItem";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
+import { getCategoryTree, listProducts } from "@/lib/catalogue";
+import { formatCedis } from "@/lib/format";
 import { generalTopics } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -73,6 +75,61 @@ function KitSection({ id, title, children }: { id: string; title: string; childr
 
 function StateLabel({ children }: { children: ReactNode }) {
   return <p className="mb-2 text-xs text-muted">{children}</p>;
+}
+
+/** Temporary (Module 2.1): proves the catalogue data layer reads from Supabase. */
+async function CatalogueData() {
+  try {
+    const [tree, popular] = await Promise.all([
+      getCategoryTree(),
+      listProducts({ sort: "popular", pageSize: 5 }),
+    ]);
+
+    return (
+      <div className="grid gap-8 md:grid-cols-2">
+        <div>
+          <StateLabel>getCategoryTree()</StateLabel>
+          <ul className="flex flex-col gap-1 text-sm">
+            {tree.map((category) => (
+              <li key={category.id}>
+                {category.name} {category.productCount}
+                {category.children.length > 0 && (
+                  <ul className="mt-1 ml-4 flex flex-col gap-1 text-muted">
+                    {category.children.map((child) => (
+                      <li key={child.id}>
+                        {child.name} {child.productCount}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <StateLabel>listProducts(popular), {popular.total} active products</StateLabel>
+          <ol className="flex flex-col gap-1 text-sm">
+            {popular.items.map((product) => (
+              <li key={product.id}>
+                {product.name} · {product.category} · {product.priceFrom ? "From " : ""}
+                {formatCedis(product.price)}
+                {product.oldPrice !== undefined && <s className="ml-1 text-muted">{formatCedis(product.oldPrice)}</s>}
+                {" · "}
+                {product.inStock ? "In stock" : "Out of stock"}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    return (
+      <p className="text-sm text-terracotta">
+        {error instanceof Error ? error.message : "Could not load catalogue data."} Run
+        supabase/migrations/0002_catalogue.sql, then supabase/seed.sql.
+      </p>
+    );
+  }
 }
 
 /** Development-only review page. */
@@ -188,6 +245,10 @@ export default function KitPage() {
                 <Logo tone="light" />
               </div>
             </div>
+          </KitSection>
+
+          <KitSection id="kit-catalogue" title="Catalogue data">
+            <CatalogueData />
           </KitSection>
 
           <KitSection id="kit-whatsapp" title="WhatsApp chat">
