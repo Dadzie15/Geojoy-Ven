@@ -17,6 +17,8 @@ export const generalTopics = [
   "Help choosing a product",
 ];
 
+export const homeTopics = ["Ask about a product", "Delivery to my area", "Paying with Mobile Money"];
+
 export function whatsappUrl(message?: string) {
   const base = `https://wa.me/${whatsappNumber}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;

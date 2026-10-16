@@ -25,8 +25,8 @@ export type ProductSort = "popular" | "newest" | "price_asc" | "price_desc";
 export type SearchSort = ProductSort | "relevance";
 
 export type ProductFilters = {
-  /** Category slug. A parent includes all of its children. */
-  category?: string;
+  /** Category slug, or several slugs (products in any of them). A parent includes all of its children. */
+  category?: string | string[];
   /** Child category slug (a "type" filter inside a parent category). */
   subcategory?: string;
   minPrice?: number;

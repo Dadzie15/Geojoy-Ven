@@ -70,11 +70,14 @@ type ProductQuery = ReturnType<typeof productSource>;
 
 /** Category ids the filters allow; null means no category filter, [] means nothing can match. */
 async function resolveCategoryIds({ category, subcategory }: ProductFilters): Promise<string[] | null> {
-  const [categoryIds, subcategoryIds] = await Promise.all([
-    category ? getCategoryIds(category) : null,
+  const slugs = category === undefined ? [] : [category].flat();
+  const [categoryIdLists, subcategoryIds] = await Promise.all([
+    Promise.all(slugs.map(getCategoryIds)),
     subcategory ? getCategoryIds(subcategory) : null,
   ]);
-  if (category && !categoryIds) return [];
+  // Unknown slugs are skipped; if none are known, nothing can match.
+  const categoryIds = slugs.length > 0 ? categoryIdLists.flatMap((ids) => ids ?? []) : null;
+  if (categoryIds?.length === 0) return [];
   if (subcategory && !subcategoryIds) return [];
   if (categoryIds && subcategoryIds) return subcategoryIds.filter((id) => categoryIds.includes(id));
   return subcategoryIds ?? categoryIds;
