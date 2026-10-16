@@ -19,7 +19,8 @@ import type {
 } from "./types";
 
 const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 60;
+// "Load more" pages render the first page × 9 products in one request (up to 20 pages).
+const MAX_PAGE_SIZE = 180;
 
 // Money columns are cast to text so numeric(10,2) values arrive as exact strings.
 const CARD_COLUMNS =

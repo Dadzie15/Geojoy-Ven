@@ -8,10 +8,11 @@ export type ImageData = { src: string; alt: string };
 
 export const GRID_IMAGE_SIZES = "(min-width: 1280px) 20vw, (min-width: 768px) 33vw, 50vw";
 
-export type ThumbnailRatio = "3/2" | "1/1" | "4/5";
+export type ThumbnailRatio = "3/2" | "6/5" | "1/1" | "4/5";
 
 const ratioClasses: Record<ThumbnailRatio, string> = {
   "3/2": "aspect-[3/2]",
+  "6/5": "aspect-[6/5]",
   "1/1": "aspect-square",
   "4/5": "aspect-[4/5]",
 };
