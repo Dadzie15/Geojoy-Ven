@@ -108,6 +108,7 @@ export function CategoriesMenu({ categories }: { categories: MenuCategory[] }) {
           role="dialog"
           aria-modal="true"
           aria-label="All categories"
+          data-menu-open={open || undefined}
           onClick={closeOnLinkClick}
           className="pointer-events-auto flex overflow-hidden rounded-panel bg-card shadow-panel"
         >
