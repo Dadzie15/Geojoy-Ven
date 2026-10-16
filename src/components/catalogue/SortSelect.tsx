@@ -5,24 +5,35 @@ import { useRouter } from "next/navigation";
 import { useId } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { iconProps } from "@/components/ui/icon";
+import { cn } from "@/lib/cn";
 import { SORT_OPTIONS, catalogueHref, toQueryString, type CatalogueParams } from "@/lib/catalogue/params";
 import type { ProductSort } from "@/lib/catalogue/types";
 
-type SortSelectProps = { pathname: string; params: CatalogueParams };
+type SortSelectProps = {
+  pathname: string;
+  params: CatalogueParams;
+  /** Full width under 768 px (All products, where Sort sits on its own row on phones). */
+  stretch?: boolean;
+};
 
 /** "Sort by" select. Changing it updates the URL; without JavaScript it is a small GET form. */
-export function SortSelect({ pathname, params }: SortSelectProps) {
+export function SortSelect({ pathname, params, stretch = false }: SortSelectProps) {
   const router = useRouter();
   const id = useId();
   // The other filters travel with the form, so sorting keeps them.
   const kept = [...new URLSearchParams(toQueryString({ ...params, sort: "popular", page: 1 }))];
 
   return (
-    <form method="get" action={pathname} className="flex items-center gap-2">
+    <form method="get" action={pathname} className={cn("flex items-center gap-2", stretch && "max-md:w-full")}>
       {kept.map(([name, value], index) => (
         <input key={`${name}-${index}`} type="hidden" name={name} value={value} />
       ))}
-      <div className="relative flex min-h-11 items-center rounded-input border border-line bg-field pl-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brown">
+      <div
+        className={cn(
+          "relative flex min-h-11 items-center rounded-input border border-line bg-field pl-3 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brown",
+          stretch && "max-md:flex-1",
+        )}
+      >
         <label htmlFor={id} className="text-[0.8125rem] whitespace-nowrap text-muted max-sm:sr-only">
           Sort by:
         </label>
@@ -35,7 +46,10 @@ export function SortSelect({ pathname, params }: SortSelectProps) {
               scroll: false,
             })
           }
-          className="min-h-11 cursor-pointer appearance-none bg-transparent py-2 pr-9 pl-1 font-heading text-[0.8125rem] font-semibold text-ink focus-visible:outline-none"
+          className={cn(
+            "min-h-11 cursor-pointer appearance-none bg-transparent py-2 pr-9 pl-1 font-heading text-[0.8125rem] font-semibold text-ink focus-visible:outline-none",
+            stretch && "max-md:flex-1",
+          )}
         >
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>

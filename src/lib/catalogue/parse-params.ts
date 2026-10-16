@@ -31,18 +31,29 @@ const schema = z.object({
   stock: flag,
   sale: flag,
   sort: z.preprocess(first, z.enum(["popular", "newest", "price_asc", "price_desc"]).catch(DEFAULT_SORT)),
-  page: z.preprocess(
+});
+
+/** A whole page number from 1 to maxPage; anything else is page 1. */
+const pageSchema = (maxPage: number) =>
+  z.preprocess(
     first,
     z
       .string()
-      .regex(/^\d{1,2}$/)
+      .regex(/^\d{1,4}$/)
       .transform(Number)
-      .pipe(z.number().int().min(1).max(MAX_PAGE))
+      .pipe(z.number().int().min(1).max(maxPage))
       .catch(1),
-  ),
-});
+  );
 
-export function parseCatalogueParams(raw: RawSearchParams): CatalogueParams {
+type ParseOptions = {
+  /**
+   * Highest page accepted; higher numbers fall back to page 1. Defaults to MAX_PAGE ("Load more").
+   * Numbered pagination passes MAX_NUMBERED_PAGE and clamps to the last page once the total is known.
+   */
+  maxPage?: number;
+};
+
+export function parseCatalogueParams(raw: RawSearchParams, { maxPage = MAX_PAGE }: ParseOptions = {}): CatalogueParams {
   const parsed = schema.parse(raw);
   let { min, max } = parsed;
   if (min !== undefined && max !== undefined && min > max) [min, max] = [max, min];
@@ -53,6 +64,6 @@ export function parseCatalogueParams(raw: RawSearchParams): CatalogueParams {
     inStock: parsed.stock === "1",
     onSale: parsed.sale === "1",
     sort: parsed.sort,
-    page: parsed.page,
+    page: pageSchema(maxPage).parse(raw.page),
   };
 }

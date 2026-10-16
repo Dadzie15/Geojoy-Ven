@@ -11,6 +11,10 @@ import type { ProductSort } from "./types";
 /** Products added by each "Load more". */
 export const PAGE_STEP = 9;
 export const MAX_PAGE = 20;
+/** Products per page on listings with numbered pagination (All products). */
+export const PRODUCTS_PER_PAGE = 20;
+/** Highest page number read from the URL on paginated listings; a page past the end shows the last page. */
+export const MAX_NUMBERED_PAGE = 9999;
 
 export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
   { value: "popular", label: "Most popular" },
@@ -29,7 +33,7 @@ export type CatalogueParams = {
   inStock: boolean;
   onSale: boolean;
   sort: ProductSort;
-  /** Load-more page: the listing shows the first page × PAGE_STEP products. */
+  /** Load-more page (the listing shows the first page × PAGE_STEP products), or the page number on paginated listings. */
   page: number;
 };
 
