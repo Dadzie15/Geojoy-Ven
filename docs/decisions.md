@@ -15,6 +15,7 @@ These override anything older. Update this file when the client changes a decisi
 | Support | WhatsApp 055 784 3743, Mon–Fri 9am–7pm, "Usually replies within 1 hour". |
 | Brand | Logo Option B ("Home & joy": a roof over a smile). Montserrat + Open Sans. Brown, terracotta, sand palette. |
 | Mobile | Figma shows desktop; every page is built responsive and phone-first from 360 px. |
+| Categories menu | Header bar, "All categories" menu, phone menu and footer "Shop" column all list the active top-level categories from the database (admin-editable, in sort order). The menu's deal card shows the most popular on-sale product in the hovered category, else the most popular in the shop, and is hidden when nothing is on sale. Menu names are shown in sentence case. |
 
 ## Still waiting on the client
 - Real product photos

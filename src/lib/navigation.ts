@@ -2,22 +2,10 @@ import { whatsappUrl } from "./whatsapp";
 
 export type NavLink = { label: string; href: string };
 
-type CategoryLink = NavLink & { hasSubmenu: boolean; inFooter: boolean };
-
-function category(label: string, slug: string, hasSubmenu: boolean, inFooter: boolean): CategoryLink {
-  return { label, href: `/category/${slug}`, hasSubmenu, inFooter };
+/** A category page. The categories themselves come from the database (getMenuCategories). */
+export function categoryHref(slug: string) {
+  return `/category/${slug}`;
 }
-
-export const categoryLinks: CategoryLink[] = [
-  category("Kitchen Appliances", "kitchen-appliances", true, true),
-  category("Cookware", "cookware", true, true),
-  category("Storage", "storage", true, true),
-  category("Laundry", "laundry", false, true),
-  category("Cleaning", "cleaning", false, false),
-  category("Bathroom", "bathroom", false, true),
-  category("Mats", "mats", false, false),
-  category("Furniture", "furniture", false, true),
-];
 
 export const dealsLink: NavLink = { label: "Deals of the week", href: "/deals" };
 export const aboutLink: NavLink = { label: "About us", href: "/about" };
@@ -30,11 +18,10 @@ export const bagLink: NavLink = { label: "Your bag", href: "/cart" };
 /** A link without an href is shown as plain text until the client supplies it. */
 export type FooterLink = { label: string; href?: string; external?: boolean };
 
-export const footerColumns: { title: string; links: FooterLink[] }[] = [
-  {
-    title: "Shop",
-    links: categoryLinks.filter((link) => link.inFooter),
-  },
+export type FooterColumn = { title: string; links: FooterLink[] };
+
+/** Footer columns after "Shop", which the Footer builds from the database categories. */
+export const footerColumns: FooterColumn[] = [
   {
     title: "Help",
     links: [

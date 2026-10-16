@@ -1,4 +1,5 @@
 import type { ProductCardProps } from "@/components/ui/ProductCard";
+import type { ImageData } from "@/components/ui/Thumbnail";
 
 /**
  * A Postgres numeric(10,2) amount as an exact decimal string, e.g. "1250.00".
@@ -95,4 +96,22 @@ export type Banner = {
   subtitle: string | null;
   imageUrl: string | null;
   linkUrl: string | null;
+};
+
+/** The on-sale product a categories menu promo card shows. */
+export type MenuDeal = {
+  name: string;
+  href: string;
+  image?: ImageData;
+  /** Old price minus price, e.g. "50.00". */
+  saving: Money;
+};
+
+/** A top-level category as the categories menus show it. */
+export type MenuCategory = {
+  name: string;
+  slug: string;
+  children: { name: string; slug: string }[];
+  /** The category's first on-sale product, else the shop's; null when nothing is on sale. */
+  deal: MenuDeal | null;
 };

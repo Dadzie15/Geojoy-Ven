@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
-import { footerColumns, paymentMethods, type FooterLink } from "@/lib/navigation";
+import type { MenuCategory } from "@/lib/catalogue/types";
+import { categoryHref, footerColumns, paymentMethods, type FooterColumn, type FooterLink } from "@/lib/navigation";
 import { Container } from "./Container";
 
 const linkClasses = "inline-flex min-h-11 items-center lg:min-h-8";
@@ -21,7 +22,12 @@ function FooterItem({ label, href, external }: FooterLink) {
   );
 }
 
-export function Footer() {
+export function Footer({ categories }: { categories: MenuCategory[] }) {
+  const columns: FooterColumn[] = [
+    { title: "Shop", links: categories.map(({ name, slug }) => ({ label: name, href: categoryHref(slug) })) },
+    ...footerColumns,
+  ];
+
   return (
     <footer className="bg-brown text-sand-tint max-sm:[body:has([data-whatsapp-button])_&]:pb-20 [&_*:focus-visible]:outline-field">
       <Container className="pt-12 pb-8 lg:pt-20">
@@ -45,7 +51,7 @@ export function Footer() {
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:flex lg:gap-20">
-            {footerColumns.map((column) => (
+            {columns.map((column) => (
               <div key={column.title}>
                 <h2 className="text-base font-semibold text-field">{column.title}</h2>
                 <ul className="mt-2 text-[0.8125rem] lg:mt-3">

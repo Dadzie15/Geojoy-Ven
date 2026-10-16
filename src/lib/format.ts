@@ -10,3 +10,13 @@ export function formatCedis(amount: number | string) {
   const formatter = Number.isInteger(value) ? wholeCedis : cedisAndPesewas;
   return `₵${formatter.format(value)}`;
 }
+
+/** A cedi amount as whole pesewas, so money can be added and subtracted without float errors. */
+export function toPesewas(amount: number | string) {
+  return Math.round(Number(amount) * 100);
+}
+
+/** "Storage & Organisation" → "Storage & organisation". */
+export function sentenceCase(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+}

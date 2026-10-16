@@ -17,7 +17,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Select } from "@/components/ui/Select";
 import { TrustItem } from "@/components/ui/TrustItem";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
-import { getCategoryTree, listProducts } from "@/lib/catalogue";
+import { getCategoryTree, getMenuCategories, listProducts } from "@/lib/catalogue";
 import { formatCedis } from "@/lib/format";
 import { generalTopics } from "@/lib/whatsapp";
 
@@ -133,12 +133,13 @@ async function CatalogueData() {
 }
 
 /** Development-only review page. */
-export default function KitPage() {
+export default async function KitPage() {
   if (process.env.NODE_ENV === "production") notFound();
+  const categories = await getMenuCategories();
 
   return (
     <>
-      <Header bagCount={2} />
+      <Header bagCount={2} categories={categories} />
       <main id="main-content" className="py-10 sm:py-14">
         <Container className="flex flex-col gap-8">
           <h1 className="text-[1.375rem] font-bold md:text-[1.75rem]">UI kit</h1>
@@ -258,7 +259,7 @@ export default function KitPage() {
           </KitSection>
         </Container>
       </main>
-      <Footer />
+      <Footer categories={categories} />
       <WhatsAppButton topics={generalTopics} />
     </>
   );

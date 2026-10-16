@@ -6,22 +6,24 @@ import {
   aboutLink,
   accountLink,
   bagLink,
-  categoryLinks,
+  categoryHref,
   contactLink,
   dealsLink,
   savedLink,
   trackOrderLink,
 } from "@/lib/navigation";
+import type { MenuCategory } from "@/lib/catalogue/types";
+import { CategoriesMenu } from "./CategoriesMenu";
 import { Container } from "./Container";
 import { MobileMenu } from "./MobileMenu";
 import { MobileSearch } from "./MobileSearch";
 import { SearchForm } from "./SearchForm";
 
-type HeaderProps = { bagCount?: number };
+type HeaderProps = { categories: MenuCategory[]; bagCount?: number };
 
 const iconLinkClasses = "min-h-11 min-w-11 items-center justify-center gap-2.5 rounded-input text-ink";
 
-export function Header({ bagCount = 0 }: HeaderProps) {
+export function Header({ categories, bagCount = 0 }: HeaderProps) {
   const bagLabel = `${bagLink.label}, ${bagCount} ${bagCount === 1 ? "item" : "items"}`;
 
   return (
@@ -52,7 +54,7 @@ export function Header({ bagCount = 0 }: HeaderProps) {
       <div className="relative border-b border-line">
         <Container className="flex h-16 items-center gap-1 md:h-22 md:gap-6 lg:gap-9">
           <div className="-ml-2.5 md:hidden">
-            <MobileMenu trigger="icon" />
+            <MobileMenu trigger="icon" categories={categories} />
           </div>
           <Link href="/" aria-label="GeoJoy Ventures home" className="shrink-0 rounded-input">
             <Logo />
@@ -86,19 +88,25 @@ export function Header({ bagCount = 0 }: HeaderProps) {
         </Container>
       </div>
 
-      <div className="hidden border-b border-line md:block">
+      <div className="relative hidden border-b border-line md:block">
         <Container className="flex h-15 items-center gap-6">
-          <MobileMenu trigger="categories" />
+          {/* Tablets get the slide-out menu; 1024 px and up get the categories panel. */}
+          <div className="lg:hidden">
+            <MobileMenu trigger="categories" categories={categories} />
+          </div>
+          <div className="hidden lg:block">
+            <CategoriesMenu categories={categories} />
+          </div>
           <nav aria-label="Categories" className="min-w-0 flex-1">
             <ul className="flex items-center gap-5 overflow-x-auto p-1 [scrollbar-width:none] xl:gap-7">
-              {categoryLinks.map((link) => (
-                <li key={link.href} className="shrink-0">
+              {categories.map((category) => (
+                <li key={category.slug} className="shrink-0">
                   <Link
-                    href={link.href}
+                    href={categoryHref(category.slug)}
                     className="flex min-h-11 items-center gap-1 font-heading text-sm font-medium whitespace-nowrap text-ink hover:text-brown-light"
                   >
-                    {link.label}
-                    {link.hasSubmenu && <ChevronDown className="size-4" {...iconProps} />}
+                    {category.name}
+                    {category.children.length > 0 && <ChevronDown className="size-4" {...iconProps} />}
                   </Link>
                 </li>
               ))}
