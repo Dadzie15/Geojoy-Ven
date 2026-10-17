@@ -5,7 +5,7 @@ import type { FormEvent, ReactNode } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { iconProps } from "@/components/ui/icon";
-import type { CatalogueParams } from "@/lib/catalogue/params";
+import { defaultSortFor, type CatalogueParams } from "@/lib/catalogue/params";
 import { PriceRangeField, type PriceBounds } from "./PriceRangeField";
 
 export type TypeOption = { slug: string; name: string; count: number };
@@ -14,6 +14,8 @@ export type TypeOption = { slug: string; name: string; count: number };
 export type FilterOptions = {
   /** Child categories for the "Type" filter; empty hides the section. */
   types: TypeOption[];
+  /** Title of the types section: "Type" (default), or "Category" on Search. */
+  typesTitle?: string;
   /** Price filter bounds in whole cedis; null hides the section. */
   priceBounds: PriceBounds | null;
 };
@@ -48,8 +50,17 @@ function FilterSection({ title, children }: { title: string; children: ReactNode
   );
 }
 
-/** Type, Price and Availability filters. Shared by the desktop sidebar and the phone bottom sheet. */
-export function FiltersForm({ id, action, value, onChange, onSubmit, types, priceBounds }: FiltersFormProps) {
+/** Type (or Category), Price and Availability filters. Shared by the desktop sidebar and the bottom sheet. */
+export function FiltersForm({
+  id,
+  action,
+  value,
+  onChange,
+  onSubmit,
+  types,
+  typesTitle = "Type",
+  priceBounds,
+}: FiltersFormProps) {
   function toggleType(slug: string, checked: boolean) {
     const next = checked ? [...value.types, slug] : value.types.filter((type) => type !== slug);
     onChange({ ...value, types: next }, "toggle");
@@ -63,7 +74,7 @@ export function FiltersForm({ id, action, value, onChange, onSubmit, types, pric
   return (
     <form id={`${id}-form`} method="get" action={action} onSubmit={handleSubmit}>
       {types.length > 0 && (
-        <FilterSection title="Type">
+        <FilterSection title={typesTitle}>
           {types.map((type) => (
             <Checkbox
               key={type.slug}
@@ -117,7 +128,8 @@ export function FiltersForm({ id, action, value, onChange, onSubmit, types, pric
         />
       </FilterSection>
 
-      {value.sort !== "popular" && <input type="hidden" name="sort" value={value.sort} />}
+      {value.q !== undefined && <input type="hidden" name="q" value={value.q} />}
+      {value.sort !== defaultSortFor(value) && <input type="hidden" name="sort" value={value.sort} />}
       <noscript>
         <button type="submit" className={buttonClasses({ className: "mt-4 w-full" })}>
           Apply filters

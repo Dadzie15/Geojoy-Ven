@@ -6,8 +6,15 @@ import { useId } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { iconProps } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import { SORT_OPTIONS, catalogueHref, toQueryString, type CatalogueParams } from "@/lib/catalogue/params";
-import type { ProductSort } from "@/lib/catalogue/types";
+import {
+  SEARCH_SORT_OPTIONS,
+  SORT_OPTIONS,
+  catalogueHref,
+  defaultSortFor,
+  toQueryString,
+  type CatalogueParams,
+} from "@/lib/catalogue/params";
+import type { SearchSort } from "@/lib/catalogue/types";
 
 type SortSelectProps = {
   pathname: string;
@@ -20,8 +27,10 @@ type SortSelectProps = {
 export function SortSelect({ pathname, params, stretch = false }: SortSelectProps) {
   const router = useRouter();
   const id = useId();
-  // The other filters travel with the form, so sorting keeps them.
-  const kept = [...new URLSearchParams(toQueryString({ ...params, sort: "popular", page: 1 }))];
+  // The query and filters travel with the form, so sorting keeps them.
+  const kept = [...new URLSearchParams(toQueryString({ ...params, sort: defaultSortFor(params), page: 1 }))];
+  // Search results add "Relevance".
+  const options = params.q === undefined ? SORT_OPTIONS : SEARCH_SORT_OPTIONS;
 
   return (
     <form method="get" action={pathname} className={cn("flex items-center gap-2", stretch && "max-md:w-full")}>
@@ -42,7 +51,7 @@ export function SortSelect({ pathname, params, stretch = false }: SortSelectProp
           name="sort"
           value={params.sort}
           onChange={(event) =>
-            router.push(catalogueHref(pathname, params, { sort: event.target.value as ProductSort }), {
+            router.push(catalogueHref(pathname, params, { sort: event.target.value as SearchSort }), {
               scroll: false,
             })
           }
@@ -51,7 +60,7 @@ export function SortSelect({ pathname, params, stretch = false }: SortSelectProp
             stretch && "max-md:flex-1",
           )}
         >
-          {SORT_OPTIONS.map((option) => (
+          {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

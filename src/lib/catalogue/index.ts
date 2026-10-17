@@ -8,6 +8,7 @@ export {
   getPriceRange,
   getProductBySlug,
   getRelatedProducts,
+  getSearchCategories,
   listProducts,
   searchProducts,
   toProductCard,

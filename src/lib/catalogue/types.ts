@@ -56,6 +56,14 @@ export type ProductList = {
   pageSize: number;
 };
 
+/** What a search query matches before filters (see getSearchCategories). */
+export type SearchCategories = {
+  total: number;
+  productIds: string[];
+  /** Top-level categories among the matches, in menu order. */
+  categories: (CategoryLink & { count: number })[];
+};
+
 export type ProductSpec = { label: string; value: string };
 
 export type ProductVariant = {
