@@ -19,14 +19,15 @@ export function ProductDetailTabs({ label, tabs }: ProductDetailTabsProps) {
       <div
         role="tablist"
         aria-label={label}
-        className="flex gap-6 overflow-x-auto border-b border-line [scrollbar-width:none] sm:gap-7 [&::-webkit-scrollbar]:hidden"
+        // Tighter under 640 px so all three tabs fit at 360 px; still scrolls if a label ever runs longer.
+        className="flex gap-3 overflow-x-auto border-b border-line [scrollbar-width:none] sm:gap-7 [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((tab, index) => (
           <button
             key={tab.key}
             {...tabProps(index)}
             className={cn(
-              "-mb-px min-h-11 shrink-0 border-b-2 text-[0.9375rem] whitespace-nowrap transition-colors motion-reduce:transition-none",
+              "-mb-px min-h-11 shrink-0 border-b-2 text-xs whitespace-nowrap sm:text-[0.9375rem] transition-colors motion-reduce:transition-none",
               index === selected
                 ? "border-brown font-semibold text-ink"
                 : "border-transparent text-muted hover:text-ink",

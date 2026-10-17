@@ -190,7 +190,7 @@ export default async function ProductPage({ params }: PageProps) {
               <SectionHeader
                 id="related-products"
                 eyebrow="You may also like"
-                title={`More for your ${topCategory.name.toLowerCase()}`}
+                title={`More in ${topCategory.name}`}
                 viewAllHref={categoryHref(topCategory.slug)}
               />
               <ProductGrid products={related} layout="four" />
