@@ -30,7 +30,7 @@ export function WhatsAppChatPanel({ id, topics, message, onClose, returnFocusRef
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-x-4 bottom-22 z-50 flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-panel bg-card shadow-panel sm:inset-x-auto sm:right-6 sm:bottom-24 sm:w-90"
+      className="fixed inset-x-4 bottom-22 z-50 flex max-h-[calc(100dvh-7rem)] flex-col overflow-hidden rounded-panel bg-card shadow-panel sm:inset-x-auto sm:right-6 sm:bottom-24 sm:w-90 max-md:[body:has([data-sticky-buy-bar])_&]:bottom-40 max-md:[body:has([data-sticky-buy-bar])_&]:max-h-[calc(100dvh-12rem)]"
     >
       <div className="flex items-center gap-3 bg-brown py-2 pr-2 pl-4 text-field [&_*:focus-visible]:outline-field">
         <LogoMark tone="light" className="size-9" />

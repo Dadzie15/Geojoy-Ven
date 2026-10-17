@@ -14,6 +14,7 @@ export const trackOrderLink: NavLink = { label: "Track your order", href: "/trac
 export const accountLink: NavLink = { label: "My account", href: "/account" };
 export const savedLink: NavLink = { label: "Saved items", href: "/saved" };
 export const bagLink: NavLink = { label: "Your bag", href: "/cart" };
+export const deliveryLink: NavLink = { label: "Delivery & fees", href: "/delivery-and-returns" };
 
 /** A link without an href is shown as plain text until the client supplies it. */
 export type FooterLink = { label: string; href?: string; external?: boolean };
@@ -26,8 +27,8 @@ export const footerColumns: FooterColumn[] = [
     title: "Help",
     links: [
       trackOrderLink,
-      { label: "Delivery & fees", href: "/delivery-and-returns" },
-      { label: "Returns & refunds", href: "/delivery-and-returns#returns" },
+      deliveryLink,
+      { label: "Returns & refunds", href: `${deliveryLink.href}#returns` },
       { label: "FAQ", href: "/help#faq" },
       contactLink,
     ],

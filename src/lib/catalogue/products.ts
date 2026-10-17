@@ -257,29 +257,33 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail | nu
   };
 }
 
-/** Other active products in the same category, most popular first. One round trip via the product's category. */
-export async function getRelatedProducts(productId: string, limit = 4): Promise<ProductCardData[]> {
-  const related = "categories.products";
-  const [{ data, error }, toCard] = await Promise.all([
-    createPublicClient()
-      .from("products")
-      .select(`categories(products(${CARD_COLUMNS}))`)
-      .eq("id", productId)
-      .eq("is_active", true)
-      .eq(`${related}.is_active`, true)
-      .neq(`${related}.id`, productId)
-      .order("popularity", { referencedTable: related, ascending: false })
-      .order("name", { referencedTable: related })
-      .limit(limit, { referencedTable: related })
-      .order("sort_order", { referencedTable: `${related}.product_images` })
-      .limit(1, { referencedTable: `${related}.product_images` })
-      .maybeSingle()
-      .overrideTypes<{ categories: { products: ProductCardRow[] } | null } | null, { merge: false }>(),
-    topLevelCardMapper(),
-  ]);
-  if (error) throw new Error(`Could not load related products: ${error.message}`);
+/**
+ * Other active products in the product's top-level category (including its children), most popular first.
+ * Child categories are often a single product (Kettles), so the top level gives the "More for your …" row something to show.
+ */
+export async function getRelatedProducts(
+  product: Pick<ProductDetail, "id" | "category" | "parentCategory">,
+  limit = 4,
+): Promise<ProductCardData[]> {
+  const topLevel = product.parentCategory ?? product.category;
+  if (!topLevel) return [];
+  // One extra in case the product itself is among the most popular.
+  const { items } = await listProducts({ category: topLevel.slug, sort: "popular", pageSize: limit + 1 });
+  return items.filter((item) => item.id !== product.id).slice(0, limit);
+}
 
-  return (data?.categories?.products ?? []).map(toCard);
+/** Slugs of the most popular active products, for pre-rendering product pages at build time. */
+export async function getPopularProductSlugs(limit: number): Promise<string[]> {
+  const { data, error } = await createPublicClient()
+    .from("products")
+    .select("slug")
+    .eq("is_active", true)
+    .order("popularity", { ascending: false })
+    .order("name")
+    .limit(limit)
+    .overrideTypes<{ slug: string }[], { merge: false }>();
+  if (error) throw new Error(`Could not load popular products: ${error.message}`);
+  return data.map((row) => row.slug);
 }
 
 /** Lowest and highest product price in a category or a search, for the price filter; null when nothing matches. */

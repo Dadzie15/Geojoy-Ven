@@ -4,6 +4,7 @@ export { getActiveBanners } from "./banners";
 export { getCategoryBySlug, getCategoryTree } from "./categories";
 export { getMenuCategories } from "./menu";
 export {
+  getPopularProductSlugs,
   getPriceRange,
   getProductBySlug,
   getRelatedProducts,

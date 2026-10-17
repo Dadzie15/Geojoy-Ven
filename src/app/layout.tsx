@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, Open_Sans } from "next/font/google";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   },
   description:
     "Kitchen appliances, cookware and household essentials for homes across Ghana. Pay securely with Mobile Money.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
 };
 
 export const viewport: Viewport = {
