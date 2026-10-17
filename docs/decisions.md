@@ -16,6 +16,7 @@ These override anything older. Update this file when the client changes a decisi
 | Brand | Logo Option B ("Home & joy": a roof over a smile). Montserrat + Open Sans. Brown, terracotta, sand palette. |
 | Mobile | Figma shows desktop; every page is built responsive and phone-first from 360 px. |
 | Categories menu | Header bar, "All categories" menu, phone menu and footer "Shop" column all list the active top-level categories from the database (admin-editable, in sort order). The menu's deal card shows the most popular on-sale product in the hovered category, else the most popular in the shop, and is hidden when nothing is on sale. Menu names are shown in sentence case. |
+| Product page | The chosen model is kept in the URL (`?model=<SKU>`); default is the first in-stock model. Stock badge shows "In stock · N left" at 15 or fewer. "You may also like" shows the most popular products from the product's top-level category (child categories such as Kettles often hold one product). Out-of-stock models stay selectable and offer "Notify me on WhatsApp when it's back". |
 
 ## Still waiting on the client
 - Real product photos

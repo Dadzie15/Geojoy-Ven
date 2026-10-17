@@ -68,4 +68,11 @@ html {
     outline: 2px solid var(--color-brown);
     outline-offset: 2px;
   }
+
+  /* Room for the product page's sticky buy bar on phones, so it never covers the footer. */
+  @media (width < 48rem) {
+    body:has([data-sticky-buy-bar]) {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+  }
 }

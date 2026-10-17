@@ -17,6 +17,8 @@ export const generalTopics = [
   "Help choosing a product",
 ];
 
+export const productTopics = ["Is this in stock?", "Delivery to my area", "Which model should I choose?"];
+
 export const homeTopics = ["Ask about a product", "Delivery to my area", "Paying with Mobile Money"];
 
 export function whatsappUrl(message?: string) {

@@ -2,7 +2,7 @@ import { ProductCard } from "@/components/ui/ProductCard";
 import type { ThumbnailRatio } from "@/components/ui/Thumbnail";
 import type { ProductCardData } from "@/lib/catalogue";
 
-type GridLayout = "listing" | "five" | "six";
+type GridLayout = "listing" | "four" | "five" | "six";
 
 const layouts: Record<GridLayout, { classes: string; ratio: ThumbnailRatio; sizes: string }> = {
   // Category, Search: 2 / 3 columns beside the filters sidebar.
@@ -10,6 +10,12 @@ const layouts: Record<GridLayout, { classes: string; ratio: ThumbnailRatio; size
     classes: "grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 md:gap-x-6",
     ratio: "6/5",
     sizes: "(min-width: 1280px) 286px, (min-width: 1024px) 22vw, (min-width: 768px) 30vw, 45vw",
+  },
+  // Product page "More for your …": 2 / 4 columns.
+  four: {
+    classes: "grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-x-5",
+    ratio: "6/5",
+    sizes: "(min-width: 1280px) 290px, (min-width: 768px) 22vw, 45vw",
   },
   // All products (no sidebar): 2 / 3 / 4 / 5 columns.
   five: {

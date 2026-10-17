@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useTabs } from "@/hooks/useTabs";
 import { cn } from "@/lib/cn";
 
 type ProductTabsProps = {
@@ -11,33 +12,9 @@ type ProductTabsProps = {
   tabs: { key: string; label: string; panel: ReactNode }[];
 };
 
-/**
- * Tabs following the ARIA tabs pattern: one Tab stop, arrow keys / Home / End move
- * between tabs and select them, and each panel is labelled by its tab.
- */
+/** Tabs following the ARIA tabs pattern (see useTabs), with the heading beside them. */
 export function ProductTabs({ heading, label, tabs }: ProductTabsProps) {
-  const [selected, setSelected] = useState(0);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const baseId = useId();
-
-  function select(index: number) {
-    setSelected(index);
-    tabRefs.current[index]?.focus();
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
-    const last = tabs.length - 1;
-    const next: Record<string, number> = {
-      ArrowRight: selected === last ? 0 : selected + 1,
-      ArrowLeft: selected === 0 ? last : selected - 1,
-      Home: 0,
-      End: last,
-    };
-    if (event.key in next) {
-      event.preventDefault();
-      select(next[event.key]);
-    }
-  }
+  const { selected, tabProps, panelProps } = useTabs(tabs.map((tab) => tab.key));
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,17 +28,7 @@ export function ProductTabs({ heading, label, tabs }: ProductTabsProps) {
           {tabs.map((tab, index) => (
             <button
               key={tab.key}
-              ref={(node) => {
-                tabRefs.current[index] = node;
-              }}
-              type="button"
-              role="tab"
-              id={`${baseId}-tab-${tab.key}`}
-              aria-selected={index === selected}
-              aria-controls={`${baseId}-panel-${tab.key}`}
-              tabIndex={index === selected ? 0 : -1}
-              onClick={() => setSelected(index)}
-              onKeyDown={onKeyDown}
+              {...tabProps(index)}
               className={cn(
                 "min-h-11 shrink-0 rounded-input px-2 font-heading text-[0.8125rem] font-medium whitespace-nowrap",
                 index === selected ? "text-ink underline underline-offset-4" : "text-muted hover:text-ink",
@@ -73,13 +40,7 @@ export function ProductTabs({ heading, label, tabs }: ProductTabsProps) {
         </div>
       </div>
       {tabs.map((tab, index) => (
-        <div
-          key={tab.key}
-          role="tabpanel"
-          id={`${baseId}-panel-${tab.key}`}
-          aria-labelledby={`${baseId}-tab-${tab.key}`}
-          hidden={index !== selected}
-        >
+        <div key={tab.key} {...panelProps(index)}>
           {tab.panel}
         </div>
       ))}

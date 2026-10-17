@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type BadgeTone = "brand" | "deal" | "success" | "warning" | "neutral";
+export type BadgeTone = "brand" | "deal" | "success" | "warning" | "soldOut" | "neutral";
 
 const toneClasses: Record<BadgeTone, string> = {
   brand: "bg-brown text-field",
   deal: "bg-terracotta text-field",
   success: "bg-success-tint text-success",
   warning: "bg-warning-tint text-ink",
+  // Ink, not terracotta, on the tint: terracotta text there is under 4.5:1.
+  soldOut: "bg-terracotta-tint text-ink",
   neutral: "border border-line bg-field text-muted",
 };
 
