@@ -14,6 +14,7 @@ import type {
   ProductList,
   ProductSort,
   ProductSpec,
+  SearchCategories,
   SearchProductsOptions,
   SearchSort,
 } from "./types";
@@ -181,6 +182,46 @@ export function listProducts(options: ListProductsOptions = {}): Promise<Product
 export async function searchProducts(q: string, options: SearchProductsOptions = {}): Promise<ProductList> {
   const term = q.trim();
   return term ? findProducts(options, "relevance", term) : emptyList(options);
+}
+
+// Far more than the catalogue holds; a guard so one search never reads an unbounded result.
+const MAX_SEARCH_FACET_ROWS = 1000;
+
+/**
+ * Everything a query matches, before filters: the total, the matching product ids and the
+ * top-level categories among them (in menu order, with counts). Powers the Search page's
+ * "Category" filter, "Related" chips and the choice between results and the no-results state.
+ */
+export async function getSearchCategories(q: string): Promise<SearchCategories> {
+  const term = q.trim();
+  if (!term) return { total: 0, productIds: [], categories: [] };
+
+  const [{ data, error }, tree] = await Promise.all([
+    productSource("id, category_id", term)
+      .limit(MAX_SEARCH_FACET_ROWS)
+      .overrideTypes<{ id: string; category_id: string | null }[], { merge: false }>(),
+    getCategoryTree(),
+  ]);
+  if (error) throw new Error(`Could not load search categories: ${error.message}`);
+
+  const topLevelOf = new Map<string, string>();
+  for (const top of tree) {
+    topLevelOf.set(top.id, top.id);
+    for (const child of top.children) topLevelOf.set(child.id, top.id);
+  }
+  const counts = new Map<string, number>();
+  for (const row of data) {
+    const top = row.category_id ? topLevelOf.get(row.category_id) : undefined;
+    if (top) counts.set(top, (counts.get(top) ?? 0) + 1);
+  }
+
+  return {
+    total: data.length,
+    productIds: data.map((row) => row.id),
+    categories: tree
+      .filter((top) => counts.has(top.id))
+      .map((top) => ({ ...toLink(top), count: counts.get(top.id)! })),
+  };
 }
 
 type ProductDetailRow = {

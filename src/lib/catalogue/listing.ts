@@ -1,5 +1,6 @@
 import "server-only";
 import {
+  DEFAULT_SORT,
   MAX_NUMBERED_PAGE,
   PAGE_STEP,
   PRODUCTS_PER_PAGE,
@@ -7,7 +8,17 @@ import {
   type RawSearchParams,
 } from "./params";
 import { parseCatalogueParams } from "./parse-params";
-import type { CategoryDetail, ListProductsOptions, ProductList } from "./types";
+import type {
+  CategoryDetail,
+  ListProductsOptions,
+  ProductList,
+  ProductSort,
+  SearchProductsOptions,
+  SearchSort,
+} from "./types";
+
+/** Listings without a query never sort by relevance (the parser already drops it; this narrows the type). */
+const listingSort = (sort: SearchSort): ProductSort => (sort === "relevance" ? DEFAULT_SORT : sort);
 
 /**
  * Validated URL state for a category page plus the matching listProducts options.
@@ -29,7 +40,7 @@ export function resolveCategoryListing(
       maxPrice: params.max,
       inStock: params.inStock,
       onSale: params.onSale,
-      sort: params.sort,
+      sort: listingSort(params.sort),
       page: 1,
       pageSize: params.page * PAGE_STEP,
     },
@@ -44,10 +55,39 @@ export function resolveAllProductsListing(raw: RawSearchParams): {
   params: CatalogueParams;
   options: ListProductsOptions;
 } {
-  const { sort, page } = parseCatalogueParams(raw, { maxPage: MAX_NUMBERED_PAGE });
+  const parsed = parseCatalogueParams(raw, { maxPage: MAX_NUMBERED_PAGE });
+  const sort = listingSort(parsed.sort);
   return {
-    params: { types: [], inStock: false, onSale: false, sort, page },
-    options: { sort, page, pageSize: PRODUCTS_PER_PAGE },
+    params: { types: [], inStock: false, onSale: false, sort, page: parsed.page },
+    options: { sort, page: parsed.page, pageSize: PRODUCTS_PER_PAGE },
+  };
+}
+
+/**
+ * Validated URL state for Search (q is already normalised and not empty) plus the matching
+ * searchProducts options. Category filters ("type") are kept only when they are top-level category
+ * slugs; the page is clamped later by loadClampedPage.
+ */
+export function resolveSearchListing(
+  q: string,
+  raw: RawSearchParams,
+  topLevelSlugs: ReadonlySet<string>,
+): { params: CatalogueParams; options: SearchProductsOptions } {
+  const parsed = parseCatalogueParams(raw, { maxPage: MAX_NUMBERED_PAGE, search: true });
+  const params = { ...parsed, q, types: parsed.types.filter((slug) => topLevelSlugs.has(slug)) };
+
+  return {
+    params,
+    options: {
+      category: params.types.length > 0 ? params.types : undefined,
+      minPrice: params.min,
+      maxPrice: params.max,
+      inStock: params.inStock,
+      onSale: params.onSale,
+      sort: params.sort,
+      page: params.page,
+      pageSize: PRODUCTS_PER_PAGE,
+    },
   };
 }
 

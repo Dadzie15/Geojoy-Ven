@@ -1,8 +1,9 @@
-import type { ProductSort } from "./types";
+import type { ProductSort, SearchSort } from "./types";
 
 /**
  * Catalogue listing state kept in the URL (category, All products, Search, Deals):
  *   ?type=kettles&type=hot-plates&min=150&max=800&stock=1&sale=1&sort=price_asc&page=2
+ * Search puts the query first (?q=pot&type=cookware) and sorts by relevance by default.
  * Every field is validated on its own; an invalid value is dropped, never an error.
  * This file has no dependencies so client controls can build URLs with it; parsing (zod) lives
  * in parse-params.ts on the server.
@@ -24,15 +25,27 @@ export const SORT_OPTIONS: { value: ProductSort; label: string }[] = [
 ];
 export const DEFAULT_SORT: ProductSort = "popular";
 
+/** Search results add "Relevance" (their default) before the usual options. */
+export const SEARCH_SORT_OPTIONS: { value: SearchSort; label: string }[] = [
+  { value: "relevance", label: "Relevance" },
+  ...SORT_OPTIONS,
+];
+
+/** Longest search query kept; longer queries are cut. */
+export const MAX_QUERY_LENGTH = 100;
+
 export type CatalogueParams = {
-  /** Child-category slugs ("Type" filter). */
+  /** Search query (trimmed, at most MAX_QUERY_LENGTH characters); only on the Search page. */
+  q?: string;
+  /** Child-category slugs ("Type" filter); top-level category slugs on Search ("Category" filter). */
   types: string[];
   /** Whole cedis. */
   min?: number;
   max?: number;
   inStock: boolean;
   onSale: boolean;
-  sort: ProductSort;
+  /** "relevance" only on Search. */
+  sort: SearchSort;
   /** Load-more page (the listing shows the first page × PAGE_STEP products), or the page number on paginated listings. */
   page: number;
 };
@@ -55,6 +68,17 @@ export function countActiveFilters(params: CatalogueParams): number {
   return params.types.length + price + Number(params.inStock) + Number(params.onSale);
 }
 
+/** "relevance" on Search, "popular" everywhere else. */
+export function defaultSortFor(params: Pick<CatalogueParams, "q">): SearchSort {
+  return params.q === undefined ? DEFAULT_SORT : "relevance";
+}
+
+/** Trimmed and cut to MAX_QUERY_LENGTH; "" when there is nothing to search for. */
+export function normaliseQuery(value: unknown): string {
+  const text = Array.isArray(value) ? value[0] : value;
+  return typeof text === "string" ? text.trim().slice(0, MAX_QUERY_LENGTH).trim() : "";
+}
+
 /** True when the URL differs from the plain listing (used for noindex). */
 export function isRefinedView(params: CatalogueParams): boolean {
   return countActiveFilters(params) > 0 || params.sort !== DEFAULT_SORT || params.page > 1;
@@ -63,12 +87,13 @@ export function isRefinedView(params: CatalogueParams): boolean {
 /** Query string for the given state, leaving out defaults, e.g. "?type=kettles&sort=newest" or "". */
 export function toQueryString(params: CatalogueParams): string {
   const query = new URLSearchParams();
+  if (params.q !== undefined) query.set("q", params.q);
   for (const type of params.types) query.append("type", type);
   if (params.min !== undefined) query.set("min", String(params.min));
   if (params.max !== undefined) query.set("max", String(params.max));
   if (params.inStock) query.set("stock", "1");
   if (params.onSale) query.set("sale", "1");
-  if (params.sort !== DEFAULT_SORT) query.set("sort", params.sort);
+  if (params.sort !== defaultSortFor(params)) query.set("sort", params.sort);
   if (params.page > 1) query.set("page", String(params.page));
   const value = query.toString();
   return value ? `?${value}` : "";
@@ -79,7 +104,7 @@ export function catalogueHref(pathname: string, params: CatalogueParams, changes
   return pathname + toQueryString({ ...params, page: 1, ...changes });
 }
 
-/** The state with every filter cleared (sort kept). */
+/** The state with every filter cleared (query and sort kept). */
 export function clearedParams(params: CatalogueParams): CatalogueParams {
-  return { types: [], inStock: false, onSale: false, sort: params.sort, page: 1 };
+  return { q: params.q, types: [], inStock: false, onSale: false, sort: params.sort, page: 1 };
 }

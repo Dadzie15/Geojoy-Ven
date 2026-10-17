@@ -30,7 +30,10 @@ const schema = z.object({
   max: cedis,
   stock: flag,
   sale: flag,
-  sort: z.preprocess(first, z.enum(["popular", "newest", "price_asc", "price_desc"]).catch(DEFAULT_SORT)),
+  sort: z.preprocess(
+    first,
+    z.enum(["relevance", "popular", "newest", "price_asc", "price_desc"]).optional().catch(undefined),
+  ),
 });
 
 /** A whole page number from 1 to maxPage; anything else is page 1. */
@@ -51,10 +54,17 @@ type ParseOptions = {
    * Numbered pagination passes MAX_NUMBERED_PAGE and clamps to the last page once the total is known.
    */
   maxPage?: number;
+  /** Search results: "relevance" is allowed and is the default. Elsewhere it falls back to DEFAULT_SORT. */
+  search?: boolean;
 };
 
-export function parseCatalogueParams(raw: RawSearchParams, { maxPage = MAX_PAGE }: ParseOptions = {}): CatalogueParams {
+export function parseCatalogueParams(
+  raw: RawSearchParams,
+  { maxPage = MAX_PAGE, search = false }: ParseOptions = {},
+): CatalogueParams {
   const parsed = schema.parse(raw);
+  const defaultSort = search ? "relevance" : DEFAULT_SORT;
+  const sort = parsed.sort === undefined || (parsed.sort === "relevance" && !search) ? defaultSort : parsed.sort;
   let { min, max } = parsed;
   if (min !== undefined && max !== undefined && min > max) [min, max] = [max, min];
   return {
@@ -63,7 +73,7 @@ export function parseCatalogueParams(raw: RawSearchParams, { maxPage = MAX_PAGE 
     max,
     inStock: parsed.stock === "1",
     onSale: parsed.sale === "1",
-    sort: parsed.sort,
+    sort,
     page: pageSchema(maxPage).parse(raw.page),
   };
 }

@@ -1,23 +1,33 @@
 import { Search } from "lucide-react";
+import { Suspense } from "react";
 import { iconProps } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
+import { MAX_QUERY_LENGTH } from "@/lib/catalogue/params";
+import { SearchQueryInput } from "./SearchQueryInput";
 
 type SearchFormProps = { id: string; className?: string; autoFocus?: boolean };
 
 export function SearchForm({ id, className, autoFocus }: SearchFormProps) {
+  const inputProps = {
+    id,
+    name: "q",
+    type: "search",
+    maxLength: MAX_QUERY_LENGTH,
+    autoFocus,
+    placeholder: "Search for products, categories and more...",
+    className:
+      "h-12 w-full rounded-input border border-line bg-field pr-14 pl-4 text-sm text-ink placeholder:text-muted focus:border-brown",
+  };
+
   return (
     <form action="/search" role="search" className={cn("relative", className)}>
       <label htmlFor={id} className="sr-only">
         Search products
       </label>
-      <input
-        id={id}
-        name="q"
-        type="search"
-        autoFocus={autoFocus}
-        placeholder="Search for products, categories and more..."
-        className="h-12 w-full rounded-input border border-line bg-field pr-14 pl-4 text-sm text-ink placeholder:text-muted focus:border-brown"
-      />
+      {/* Reading the URL needs a Suspense boundary on statically rendered pages; until then the field is empty. */}
+      <Suspense fallback={<input {...inputProps} />}>
+        <SearchQueryInput {...inputProps} />
+      </Suspense>
       <button
         type="submit"
         aria-label="Search"
