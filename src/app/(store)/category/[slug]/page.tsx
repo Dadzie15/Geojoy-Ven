@@ -12,6 +12,7 @@ import { countCategoryProducts } from "@/lib/catalogue/actions";
 import { resolveCategoryListing } from "@/lib/catalogue/listing";
 import { isRefinedView, type RawSearchParams } from "@/lib/catalogue/params";
 import { parseCatalogueParams } from "@/lib/catalogue/parse-params";
+import { notFoundMetadata } from "@/lib/not-found";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,7 @@ function describe(category: CategoryDetail): string {
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
-  if (!category) return {};
+  if (!category) return notFoundMetadata;
 
   const description = describe(category);
   return {
