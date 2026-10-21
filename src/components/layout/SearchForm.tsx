@@ -5,16 +5,27 @@ import { cn } from "@/lib/cn";
 import { MAX_QUERY_LENGTH } from "@/lib/catalogue/params";
 import { SearchQueryInput } from "./SearchQueryInput";
 
-type SearchFormProps = { id: string; className?: string; autoFocus?: boolean };
+type SearchFormProps = {
+  id: string;
+  className?: string;
+  autoFocus?: boolean;
+  /** Defaults to the header's "Search for products, categories and more...". */
+  placeholder?: string;
+};
 
-export function SearchForm({ id, className, autoFocus }: SearchFormProps) {
+export function SearchForm({
+  id,
+  className,
+  autoFocus,
+  placeholder = "Search for products, categories and more...",
+}: SearchFormProps) {
   const inputProps = {
     id,
     name: "q",
     type: "search",
     maxLength: MAX_QUERY_LENGTH,
     autoFocus,
-    placeholder: "Search for products, categories and more...",
+    placeholder,
     className:
       "h-12 w-full rounded-input border border-line bg-field pr-14 pl-4 text-sm text-ink placeholder:text-muted focus:border-brown",
   };

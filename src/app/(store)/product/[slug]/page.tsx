@@ -20,6 +20,7 @@ import {
   type ProductVariant,
 } from "@/lib/catalogue";
 import { categoryHref, deliveryLink } from "@/lib/navigation";
+import { notFoundMetadata } from "@/lib/not-found";
 import { variantKey } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { productTopics } from "@/lib/whatsapp";
@@ -46,7 +47,7 @@ function firstSentence(text: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return {};
+  if (!product) return notFoundMetadata;
 
   const image = product.images[0];
   return {
