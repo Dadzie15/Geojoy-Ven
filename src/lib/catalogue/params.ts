@@ -1,9 +1,10 @@
-import type { ProductSort, SearchSort } from "./types";
+import type { CatalogueSort, DealSort, ProductSort, SearchSort } from "./types";
 
 /**
  * Catalogue listing state kept in the URL (category, All products, Search, Deals):
  *   ?type=kettles&type=hot-plates&min=150&max=800&stock=1&sale=1&sort=price_asc&page=2
  * Search puts the query first (?q=pot&type=cookware) and sorts by relevance by default.
+ * Deals filter by one top-level category (?category=cookware) and sort by biggest saving by default.
  * Every field is validated on its own; an invalid value is dropped, never an error.
  * This file has no dependencies so client controls can build URLs with it; parsing (zod) lives
  * in parse-params.ts on the server.
@@ -31,12 +32,22 @@ export const SEARCH_SORT_OPTIONS: { value: SearchSort; label: string }[] = [
   ...SORT_OPTIONS,
 ];
 
+/** Deals add "Biggest saving" (their default) before the usual options. */
+export const DEALS_SORT_OPTIONS: { value: DealSort; label: string }[] = [
+  { value: "saving", label: "Biggest saving" },
+  ...SORT_OPTIONS,
+];
+
 /** Longest search query kept; longer queries are cut. */
 export const MAX_QUERY_LENGTH = 100;
 
 export type CatalogueParams = {
   /** Search query (trimmed, at most MAX_QUERY_LENGTH characters); only on the Search page. */
   q?: string;
+  /** The Deals page: "saving" is allowed and is the default sort. Not part of the URL. */
+  deals?: boolean;
+  /** Top-level category slug; only on the Deals page. */
+  category?: string;
   /** Child-category slugs ("Type" filter); top-level category slugs on Search ("Category" filter). */
   types: string[];
   /** Whole cedis. */
@@ -44,8 +55,8 @@ export type CatalogueParams = {
   max?: number;
   inStock: boolean;
   onSale: boolean;
-  /** "relevance" only on Search. */
-  sort: SearchSort;
+  /** "relevance" only on Search, "saving" only on Deals. */
+  sort: CatalogueSort;
   /** Load-more page (the listing shows the first page × PAGE_STEP products), or the page number on paginated listings. */
   page: number;
 };
@@ -68,9 +79,16 @@ export function countActiveFilters(params: CatalogueParams): number {
   return params.types.length + price + Number(params.inStock) + Number(params.onSale);
 }
 
-/** "relevance" on Search, "popular" everywhere else. */
-export function defaultSortFor(params: Pick<CatalogueParams, "q">): SearchSort {
-  return params.q === undefined ? DEFAULT_SORT : "relevance";
+/** "relevance" on Search, "saving" on Deals, "popular" everywhere else. */
+export function defaultSortFor(params: Pick<CatalogueParams, "q" | "deals">): CatalogueSort {
+  if (params.q !== undefined) return "relevance";
+  return params.deals ? "saving" : DEFAULT_SORT;
+}
+
+/** The "Sort by" options a listing offers. */
+export function sortOptionsFor(params: Pick<CatalogueParams, "q" | "deals">): { value: CatalogueSort; label: string }[] {
+  if (params.q !== undefined) return SEARCH_SORT_OPTIONS;
+  return params.deals ? DEALS_SORT_OPTIONS : SORT_OPTIONS;
 }
 
 /** Trimmed and cut to MAX_QUERY_LENGTH; "" when there is nothing to search for. */
@@ -81,13 +99,19 @@ export function normaliseQuery(value: unknown): string {
 
 /** True when the URL differs from the plain listing (used for noindex). */
 export function isRefinedView(params: CatalogueParams): boolean {
-  return countActiveFilters(params) > 0 || params.sort !== DEFAULT_SORT || params.page > 1;
+  return (
+    countActiveFilters(params) > 0 ||
+    params.category !== undefined ||
+    params.sort !== defaultSortFor(params) ||
+    params.page > 1
+  );
 }
 
 /** Query string for the given state, leaving out defaults, e.g. "?type=kettles&sort=newest" or "". */
 export function toQueryString(params: CatalogueParams): string {
   const query = new URLSearchParams();
   if (params.q !== undefined) query.set("q", params.q);
+  if (params.category !== undefined) query.set("category", params.category);
   for (const type of params.types) query.append("type", type);
   if (params.min !== undefined) query.set("min", String(params.min));
   if (params.max !== undefined) query.set("max", String(params.max));

@@ -9,7 +9,9 @@ import {
 } from "./params";
 import { parseCatalogueParams } from "./parse-params";
 import type {
+  CatalogueSort,
   CategoryDetail,
+  DealSort,
   ListProductsOptions,
   ProductList,
   ProductSort,
@@ -17,8 +19,14 @@ import type {
   SearchSort,
 } from "./types";
 
-/** Listings without a query never sort by relevance (the parser already drops it; this narrows the type). */
-const listingSort = (sort: SearchSort): ProductSort => (sort === "relevance" ? DEFAULT_SORT : sort);
+/**
+ * Listings without a query never sort by relevance, and only Deals sort by saving (the parser
+ * already drops both; this narrows the type).
+ */
+const listingSort = (sort: CatalogueSort): ProductSort =>
+  sort === "relevance" || sort === "saving" ? DEFAULT_SORT : sort;
+const searchSort = (sort: CatalogueSort): SearchSort => (sort === "saving" ? "relevance" : sort);
+const dealSort = (sort: CatalogueSort): DealSort => (sort === "relevance" ? "saving" : sort);
 
 /**
  * Validated URL state for a category page plus the matching listProducts options.
@@ -84,10 +92,28 @@ export function resolveSearchListing(
       maxPrice: params.max,
       inStock: params.inStock,
       onSale: params.onSale,
-      sort: params.sort,
+      sort: searchSort(params.sort),
       page: params.page,
       pageSize: PRODUCTS_PER_PAGE,
     },
+  };
+}
+
+/**
+ * Validated URL state for Deals: category, sort and page. The category is kept only when it is a
+ * top-level category slug (one with no deals shows the empty state); the page is clamped later by
+ * loadClampedPage.
+ */
+export function resolveDealsListing(
+  raw: RawSearchParams,
+  topLevelSlugs: ReadonlySet<string>,
+): { params: CatalogueParams; options: ListProductsOptions } {
+  const parsed = parseCatalogueParams(raw, { maxPage: MAX_NUMBERED_PAGE, deals: true });
+  const category = parsed.category !== undefined && topLevelSlugs.has(parsed.category) ? parsed.category : undefined;
+  const sort = dealSort(parsed.sort);
+  return {
+    params: { deals: true, category, types: [], inStock: false, onSale: false, sort, page: parsed.page },
+    options: { category, onSale: true, sort, page: parsed.page, pageSize: PRODUCTS_PER_PAGE },
   };
 }
 

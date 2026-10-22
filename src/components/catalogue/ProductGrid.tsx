@@ -36,16 +36,18 @@ type ProductGridProps = {
   layout?: GridLayout;
   /** Gives each item an id (`${prefix}-1`, `${prefix}-2` ...) so "Load more" can link to the first new product. */
   itemIdPrefix?: string;
+  /** Each card shows a "Save ₵x" badge (Deals). */
+  showSaving?: boolean;
 };
 
 /** Product cards in a responsive grid. "+" links to the product page until adding to the bag arrives. */
-export function ProductGrid({ products, layout = "listing", itemIdPrefix }: ProductGridProps) {
+export function ProductGrid({ products, layout = "listing", itemIdPrefix, showSaving }: ProductGridProps) {
   const { classes, ratio, sizes } = layouts[layout];
   return (
     <ul className={classes}>
       {products.map(({ id, ...card }, index) => (
         <li key={id} id={itemIdPrefix && `${itemIdPrefix}-${index + 1}`} className="scroll-mt-6">
-          <ProductCard {...card} chooseOptions imageRatio={ratio} imageSizes={sizes} />
+          <ProductCard {...card} chooseOptions showSaving={showSaving} imageRatio={ratio} imageSizes={sizes} />
         </li>
       ))}
     </ul>

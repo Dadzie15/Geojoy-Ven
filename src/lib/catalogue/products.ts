@@ -3,6 +3,8 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { getCategoryIds, getCategoryTree, toLink } from "./categories";
 import type {
   CategoryLink,
+  CategoryNode,
+  DealSort,
   ListProductsOptions,
   Money,
   Pagination,
@@ -12,7 +14,6 @@ import type {
   ProductDetail,
   ProductFilters,
   ProductList,
-  ProductSort,
   ProductSpec,
   SearchCategories,
   SearchProductsOptions,
@@ -59,14 +60,21 @@ export function toProductCard(row: ProductCardRow, categoryName = row.categories
   };
 }
 
+/** Every category id (top-level and child) mapped to its top-level category. */
+function topLevelById(tree: CategoryNode[]): Map<string, CategoryNode> {
+  const topLevel = new Map<string, CategoryNode>();
+  for (const top of tree) {
+    topLevel.set(top.id, top);
+    for (const child of top.children) topLevel.set(child.id, top);
+  }
+  return topLevel;
+}
+
 /** A card mapper that labels each product with its top-level category ("Kitchen Appliances"), as the design shows. */
 async function topLevelCardMapper() {
-  const topLevel = new Map<string, string>();
-  for (const top of await getCategoryTree()) {
-    topLevel.set(top.id, top.name);
-    for (const child of top.children) topLevel.set(child.id, top.name);
-  }
-  return (row: ProductCardRow) => toProductCard(row, row.category_id ? topLevel.get(row.category_id) : undefined);
+  const topLevel = topLevelById(await getCategoryTree());
+  return (row: ProductCardRow) =>
+    toProductCard(row, row.category_id ? topLevel.get(row.category_id)?.name : undefined);
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +111,8 @@ function applyFilters(query: ProductQuery, filters: ProductFilters, categoryIds:
   if (categoryIds) query = query.in("category_id", categoryIds);
   if (filters.minPrice !== undefined) query = query.gte("price", filters.minPrice);
   if (filters.maxPrice !== undefined) query = query.lte("price", filters.maxPrice);
-  if (filters.onSale) query = query.not("compare_at_price", "is", null);
+  // saving = compare_at_price - price (0003_deals.sql); null without an old price.
+  if (filters.onSale) query = query.gt("saving", 0);
   // Needs the in_stock embed from cardColumns(filters).
   if (filters.inStock) query = query.gt("in_stock.stock", 0);
   return query;
@@ -114,7 +123,8 @@ function cardColumns(filters: ProductFilters) {
   return filters.inStock ? `${CARD_COLUMNS}, in_stock:product_variants!inner()` : CARD_COLUMNS;
 }
 
-const SORT_ORDER: Record<ProductSort, { column: string; ascending: boolean }> = {
+const SORT_ORDER: Record<DealSort, { column: string; ascending: boolean }> = {
+  saving: { column: "saving", ascending: false },
   popular: { column: "popularity", ascending: false },
   newest: { column: "created_at", ascending: false },
   price_asc: { column: "price", ascending: true },
@@ -132,7 +142,7 @@ function emptyList({ page, pageSize }: Pagination): ProductList {
 }
 
 async function findProducts(
-  options: SearchProductsOptions,
+  options: SearchProductsOptions | ListProductsOptions,
   defaultSort: SearchSort,
   q?: string,
 ): Promise<ProductList> {
@@ -148,7 +158,8 @@ async function findProducts(
   const sort = options.sort ?? defaultSort;
   if (sort !== "relevance") {
     const { column, ascending } = SORT_ORDER[sort];
-    query = query.order(column, { ascending }).order("name").order("id");
+    // Products without an old price have no saving; they go last.
+    query = query.order(column, { ascending, nullsFirst: false }).order("name").order("id");
   }
 
   const from = (page - 1) * pageSize;
@@ -204,14 +215,10 @@ export async function getSearchCategories(q: string): Promise<SearchCategories> 
   ]);
   if (error) throw new Error(`Could not load search categories: ${error.message}`);
 
-  const topLevelOf = new Map<string, string>();
-  for (const top of tree) {
-    topLevelOf.set(top.id, top.id);
-    for (const child of top.children) topLevelOf.set(child.id, top.id);
-  }
+  const topLevelOf = topLevelById(tree);
   const counts = new Map<string, number>();
   for (const row of data) {
-    const top = row.category_id ? topLevelOf.get(row.category_id) : undefined;
+    const top = row.category_id ? topLevelOf.get(row.category_id)?.id : undefined;
     if (top) counts.set(top, (counts.get(top) ?? 0) + 1);
   }
 
@@ -222,6 +229,22 @@ export async function getSearchCategories(q: string): Promise<SearchCategories> 
       .filter((top) => counts.has(top.id))
       .map((top) => ({ ...toLink(top), count: counts.get(top.id)! })),
   };
+}
+
+/** Top-level categories (in menu order) with at least one active on-sale product, for the Deals page's pills. */
+export async function getDealCategories(): Promise<CategoryLink[]> {
+  const [{ data, error }, tree] = await Promise.all([
+    applyFilters(productSource("category_id"), { onSale: true }, null).overrideTypes<
+      { category_id: string | null }[],
+      { merge: false }
+    >(),
+    getCategoryTree(),
+  ]);
+  if (error) throw new Error(`Could not load deal categories: ${error.message}`);
+
+  const topLevelOf = topLevelById(tree);
+  const withDeals = new Set(data.map((row) => row.category_id && topLevelOf.get(row.category_id)?.id));
+  return tree.filter((top) => withDeals.has(top.id)).map(toLink);
 }
 
 type ProductDetailRow = {

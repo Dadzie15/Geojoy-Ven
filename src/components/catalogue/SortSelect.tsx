@@ -6,15 +6,8 @@ import { useId } from "react";
 import { buttonClasses } from "@/components/ui/Button";
 import { iconProps } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import {
-  SEARCH_SORT_OPTIONS,
-  SORT_OPTIONS,
-  catalogueHref,
-  defaultSortFor,
-  toQueryString,
-  type CatalogueParams,
-} from "@/lib/catalogue/params";
-import type { SearchSort } from "@/lib/catalogue/types";
+import { catalogueHref, defaultSortFor, sortOptionsFor, toQueryString, type CatalogueParams } from "@/lib/catalogue/params";
+import type { CatalogueSort } from "@/lib/catalogue/types";
 
 type SortSelectProps = {
   pathname: string;
@@ -29,8 +22,8 @@ export function SortSelect({ pathname, params, stretch = false }: SortSelectProp
   const id = useId();
   // The query and filters travel with the form, so sorting keeps them.
   const kept = [...new URLSearchParams(toQueryString({ ...params, sort: defaultSortFor(params), page: 1 }))];
-  // Search results add "Relevance".
-  const options = params.q === undefined ? SORT_OPTIONS : SEARCH_SORT_OPTIONS;
+  // Search results add "Relevance"; Deals add "Biggest saving".
+  const options = sortOptionsFor(params);
 
   return (
     <form method="get" action={pathname} className={cn("flex items-center gap-2", stretch && "max-md:w-full")}>
@@ -51,7 +44,7 @@ export function SortSelect({ pathname, params, stretch = false }: SortSelectProp
           name="sort"
           value={params.sort}
           onChange={(event) =>
-            router.push(catalogueHref(pathname, params, { sort: event.target.value as SearchSort }), {
+            router.push(catalogueHref(pathname, params, { sort: event.target.value as CatalogueSort }), {
               scroll: false,
             })
           }

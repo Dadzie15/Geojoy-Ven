@@ -24,6 +24,10 @@ export type CategoryDetail = CategoryNode & {
 
 export type ProductSort = "popular" | "newest" | "price_asc" | "price_desc";
 export type SearchSort = ProductSort | "relevance";
+/** Deals also sort by "saving" (old price minus price, biggest first). */
+export type DealSort = ProductSort | "saving";
+/** Any listing's sort: "relevance" only on Search, "saving" only on Deals. */
+export type CatalogueSort = SearchSort | DealSort;
 
 export type ProductFilters = {
   /** Category slug, or several slugs (products in any of them). A parent includes all of its children. */
@@ -33,12 +37,13 @@ export type ProductFilters = {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
+  /** Old price above the price. */
   onSale?: boolean;
 };
 
 export type Pagination = { page?: number; pageSize?: number };
 
-export type ListProductsOptions = ProductFilters & Pagination & { sort?: ProductSort };
+export type ListProductsOptions = ProductFilters & Pagination & { sort?: DealSort };
 export type SearchProductsOptions = ProductFilters & Pagination & { sort?: SearchSort };
 
 /** ProductCard props plus the fields the card needs for "From ₵x" and stock states. */

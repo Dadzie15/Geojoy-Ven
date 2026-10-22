@@ -1,5 +1,5 @@
 import "server-only";
-import { toPesewas } from "@/lib/format";
+import { savingCedis } from "@/lib/format";
 import { getCategoryTree } from "./categories";
 import { listProducts } from "./products";
 import type { MenuCategory, MenuDeal } from "./types";
@@ -8,13 +8,9 @@ import type { MenuCategory, MenuDeal } from "./types";
 async function firstDeal(category?: string): Promise<MenuDeal | null> {
   const { items } = await listProducts({ category, onSale: true, sort: "popular", pageSize: 1 });
   const product = items[0];
-  if (!product?.oldPrice) return null;
-  return {
-    name: product.name,
-    href: product.href,
-    image: product.image,
-    saving: ((toPesewas(product.oldPrice) - toPesewas(product.price)) / 100).toFixed(2),
-  };
+  const saving = product?.oldPrice !== undefined ? savingCedis(product.oldPrice, product.price) : null;
+  if (!product || !saving) return null;
+  return { name: product.name, href: product.href, image: product.image, saving };
 }
 
 /**
