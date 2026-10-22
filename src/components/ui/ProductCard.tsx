@@ -1,6 +1,6 @@
 import { Heart, Plus } from "lucide-react";
 import Link from "next/link";
-import { formatCedis } from "@/lib/format";
+import { formatCedis, savingCedis } from "@/lib/format";
 import { Badge, type BadgeTone } from "./Badge";
 import { iconProps } from "./icon";
 import { Thumbnail, type ImageData, type ThumbnailRatio } from "./Thumbnail";
@@ -17,6 +17,8 @@ export type ProductCardProps = {
   priceFrom?: boolean;
   /** False shows an "Out of stock" badge. */
   inStock?: boolean;
+  /** Shows a "Save ₵x" deal badge (old price minus price) when there is no other badge (Deals). */
+  showSaving?: boolean;
   /** Shows the save (heart) button. Off until saved items arrive (Phase 5). */
   showSave?: boolean;
   /** "+" links to the product page to choose options, instead of adding to the bag. */
@@ -38,12 +40,15 @@ export function ProductCard({
   badge,
   priceFrom = false,
   inStock = true,
+  showSaving = false,
   showSave = false,
   chooseOptions = false,
   imageRatio,
   imageSizes,
 }: ProductCardProps) {
-  const shownBadge = inStock ? badge : { label: "Out of stock", tone: "neutral" as const };
+  const saving = showSaving && oldPrice !== undefined ? savingCedis(oldPrice, price) : null;
+  const ownBadge = badge ?? (saving ? { label: `Save ${formatCedis(saving)}`, tone: "deal" as const } : undefined);
+  const shownBadge = inStock ? ownBadge : { label: "Out of stock", tone: "neutral" as const };
 
   return (
     // Full height of its grid or row cell, so the price row (and "+") lines up across a row.
