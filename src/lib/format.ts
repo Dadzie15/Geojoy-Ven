@@ -16,10 +16,15 @@ export function toPesewas(amount: number | string) {
   return Math.round(Number(amount) * 100);
 }
 
+/** Whole pesewas back to an exact cedi amount, e.g. 45000 → "450.00". */
+export function fromPesewas(pesewas: number) {
+  return (pesewas / 100).toFixed(2);
+}
+
 /** Old price minus price, worked out in whole pesewas, e.g. "150.00"; null when there is no saving. */
 export function savingCedis(oldPrice: number | string, price: number | string) {
   const pesewas = toPesewas(oldPrice) - toPesewas(price);
-  return pesewas > 0 ? (pesewas / 100).toFixed(2) : null;
+  return pesewas > 0 ? fromPesewas(pesewas) : null;
 }
 
 /** "Storage & Organisation" → "Storage & organisation". */

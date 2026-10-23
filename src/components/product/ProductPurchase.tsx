@@ -3,7 +3,7 @@
 import { Heart, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useRef, useState, type MouseEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { iconProps } from "@/components/ui/icon";
 import { formatCedis } from "@/lib/format";
@@ -16,7 +16,7 @@ import {
   variantKey,
 } from "@/lib/product";
 import type { ProductVariant } from "@/lib/catalogue/types";
-import { addToBag } from "./add-to-bag";
+import { useAddToBag } from "./add-to-bag";
 import { ModelPicker } from "./ModelPicker";
 import { QuantityStepper } from "./QuantityStepper";
 import { StickyBuyBar } from "./StickyBuyBar";
@@ -59,6 +59,7 @@ function PurchasePanel({
   const selected = variants.find((variant) => variantKey(variant) === requestedModel) ?? defaultVariant(variants);
   const [quantity, setQuantity] = useState(1);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const { add, pending, error, clearError } = useAddToBag();
 
   const hasModels = variants.length > 1;
   const soldOut = selected.stock <= 0;
@@ -70,15 +71,17 @@ function PurchasePanel({
 
   function selectModel(variant: ProductVariant) {
     setQuantity(1);
+    clearError();
     const params = new URLSearchParams(window.location.search);
     params.set("model", variantKey(variant));
     // Next keeps useSearchParams in sync with history.replaceState: no navigation, no reload, no history entry.
     window.history.replaceState(null, "", `?${params}`);
   }
 
-  function onAddToBag() {
-    addToBag({ productId, variantId: selected.id, quantity });
+  function onAddToBag(event: MouseEvent<HTMLButtonElement>) {
+    void add({ productId, variantId: selected.id, quantity }, event.currentTarget);
   }
+
 
   const notifyUrl = notifyWhenBackUrl(message);
 
@@ -101,11 +104,11 @@ function PurchasePanel({
         <div ref={actionsRef} className="flex flex-wrap items-center gap-3">
           <QuantityStepper value={quantity} max={selected.stock} onChange={setQuantity} />
           <Button
-            disabled={soldOut}
+            disabled={soldOut || pending}
             onClick={onAddToBag}
             className="order-last basis-full whitespace-nowrap xl:order-none xl:min-w-0 xl:flex-1 xl:basis-auto"
           >
-            {soldOut ? "Out of stock" : `Add to cart · ${total}`}
+            {soldOut ? "Out of stock" : pending ? "Adding…" : `Add to cart · ${total}`}
           </Button>
           <Link
             href={savedLink.href}
@@ -115,6 +118,11 @@ function PurchasePanel({
             <Heart className="size-5" {...iconProps} />
           </Link>
         </div>
+        {error && (
+          <p role="alert" className="text-sm text-terracotta">
+            {error}
+          </p>
+        )}
         <Button href={soldOut ? notifyUrl : askAboutProductUrl(message)} {...external} variant="secondary" className="w-full py-2 text-center">
           <MessageCircle className="size-4 shrink-0" {...iconProps} />
           {soldOut ? "Notify me on WhatsApp when it's back" : "Ask about this product on WhatsApp"}
@@ -125,14 +133,15 @@ function PurchasePanel({
         targetRef={actionsRef}
         title={hasModels ? `${name} · ${selected.name}` : name}
         price={soldOut ? formatCedis(selected.price) : total}
+        error={error}
         action={
           soldOut ? (
             <Button href={notifyUrl} {...external} className="shrink-0">
               Notify me on WhatsApp
             </Button>
           ) : (
-            <Button onClick={onAddToBag} className="shrink-0">
-              Add to cart
+            <Button onClick={onAddToBag} disabled={pending} className="shrink-0">
+              {pending ? "Adding…" : "Add to cart"}
             </Button>
           )
         }

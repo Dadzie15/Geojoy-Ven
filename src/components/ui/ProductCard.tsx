@@ -1,5 +1,7 @@
 import { Heart, Plus } from "lucide-react";
 import Link from "next/link";
+import { CardAddButton } from "@/components/bag/CardAddButton";
+import type { BagItemRef } from "@/lib/bag/types";
 import { formatCedis, savingCedis } from "@/lib/format";
 import { Badge, type BadgeTone } from "./Badge";
 import { iconProps } from "./icon";
@@ -21,14 +23,17 @@ export type ProductCardProps = {
   showSaving?: boolean;
   /** Shows the save (heart) button. Off until saved items arrive (Phase 5). */
   showSave?: boolean;
-  /** "+" links to the product page to choose options, instead of adding to the bag. */
+  /** Set for products with one model: "+" adds it to the bag. */
+  bagItem?: BagItemRef;
+  /** Without a bagItem, "+" links to the product page to choose options (storefront listings). */
   chooseOptions?: boolean;
   imageRatio?: ThumbnailRatio;
   imageSizes?: string;
 };
 
 const plusClasses =
-  "grid size-8 place-items-center rounded-input border border-ink/60 text-ink transition-colors group-hover:bg-sand-tint motion-reduce:transition-none";
+  "grid size-8 place-items-center rounded-input border border-ink/60 text-ink transition-colors group-hover:bg-sand-tint group-disabled:border-line group-disabled:text-muted group-disabled:group-hover:bg-transparent motion-reduce:transition-none";
+const plusTargetClasses = "group relative z-10 -mr-1.5 -mb-1.5 grid size-11 place-items-center";
 
 export function ProductCard({
   href,
@@ -42,6 +47,7 @@ export function ProductCard({
   inStock = true,
   showSaving = false,
   showSave = false,
+  bagItem,
   chooseOptions = false,
   imageRatio,
   imageSizes,
@@ -92,22 +98,20 @@ export function ProductCard({
               </p>
             ) : null}
           </div>
-          {chooseOptions ? (
-            <Link
-              href={href}
-              aria-label={`Choose options for ${name}`}
-              className="group relative z-10 -mr-1.5 -mb-1.5 grid size-11 place-items-center"
-            >
+          {bagItem ? (
+            <CardAddButton item={bagItem} name={name} disabled={!inStock} className={plusTargetClasses}>
+              <span className={plusClasses}>
+                <Plus className="size-4" {...iconProps} />
+              </span>
+            </CardAddButton>
+          ) : chooseOptions ? (
+            <Link href={href} aria-label={`Choose options for ${name}`} className={plusTargetClasses}>
               <span className={plusClasses}>
                 <Plus className="size-4" {...iconProps} />
               </span>
             </Link>
           ) : (
-            <button
-              type="button"
-              aria-label={`Add ${name} to bag`}
-              className="group relative z-10 -mr-1.5 -mb-1.5 grid size-11 place-items-center"
-            >
+            <button type="button" aria-label={`Add ${name} to bag`} className={plusTargetClasses}>
               <span className={plusClasses}>
                 <Plus className="size-4" {...iconProps} />
               </span>

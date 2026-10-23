@@ -14,7 +14,7 @@ type WhatsAppButtonProps = {
 
 /**
  * Floating WhatsApp chat. Render it only on Home, Product, Checkout, Payment failed, Track order and Help & contact.
- * Hidden while a header menu is open (`data-menu-open`), so it never shows over the menu, and moved up
+ * Hidden while a header menu or the bag drawer is open (`data-menu-open`), so it never shows over them, and moved up
  * on phones while the product page's sticky buy bar shows (`data-sticky-buy-bar`), so it never covers it.
  */
 export function WhatsAppButton({ topics, message }: WhatsAppButtonProps) {

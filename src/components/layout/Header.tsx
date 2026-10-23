@@ -1,11 +1,11 @@
-import { ChevronDown, Heart, ShoppingCart, Tag, User } from "lucide-react";
+import { ChevronDown, Heart, Tag, User } from "lucide-react";
 import Link from "next/link";
+import { BagLink } from "@/components/bag/BagLink";
 import { iconProps } from "@/components/ui/icon";
 import { Logo } from "@/components/ui/Logo";
 import {
   aboutLink,
   accountLink,
-  bagLink,
   categoryHref,
   contactLink,
   dealsLink,
@@ -19,13 +19,15 @@ import { MobileMenu } from "./MobileMenu";
 import { MobileSearch } from "./MobileSearch";
 import { SearchForm } from "./SearchForm";
 
-type HeaderProps = { categories: MenuCategory[]; bagCount?: number };
+type HeaderProps = {
+  categories: MenuCategory[];
+  /** A fixed bag count (the UI kit). The storefront leaves it out and shows the real bag. */
+  bagCount?: number;
+};
 
 const iconLinkClasses = "min-h-11 min-w-11 items-center justify-center gap-2.5 rounded-input text-ink";
 
-export function Header({ categories, bagCount = 0 }: HeaderProps) {
-  const bagLabel = `${bagLink.label}, ${bagCount} ${bagCount === 1 ? "item" : "items"}`;
-
+export function Header({ categories, bagCount }: HeaderProps) {
   return (
     <header>
       <a
@@ -72,18 +74,7 @@ export function Header({ categories, bagCount = 0 }: HeaderProps) {
             <Link href={savedLink.href} aria-label={savedLink.label} className={`${iconLinkClasses} hidden md:flex`}>
               <Heart className="size-6" {...iconProps} />
             </Link>
-            <Link href={bagLink.href} aria-label={bagLabel} className={`${iconLinkClasses} relative flex`}>
-              <ShoppingCart className="size-6" {...iconProps} />
-              {bagCount > 0 && (
-                <span className="absolute top-0.5 right-0 grid size-5 place-items-center rounded-full bg-terracotta font-heading text-[0.6875rem] font-semibold text-field lg:static">
-                  {bagCount}
-                </span>
-              )}
-              <span className="hidden flex-col leading-tight lg:flex">
-                <span className="text-[0.8125rem] text-muted">{bagLink.label}</span>
-                <span className="text-[0.8125rem] font-semibold">View bag</span>
-              </span>
-            </Link>
+            <BagLink count={bagCount} className={iconLinkClasses} />
           </div>
         </Container>
       </div>
