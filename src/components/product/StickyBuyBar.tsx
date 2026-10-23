@@ -9,13 +9,15 @@ type StickyBuyBarProps = {
   price: string;
   /** The bar's one button: Add to cart, or Notify me on WhatsApp. */
   action: ReactNode;
+  /** Why the last add failed, shown under the bar's row (the main button's message is the announced one). */
+  error?: string | null;
 };
 
 /**
  * Phones only (under 768 px): price and the main action fixed to the bottom. While shown it carries
  * `data-sticky-buy-bar`, which lifts the floating WhatsApp button above it and pads the page bottom.
  */
-export function StickyBuyBar({ targetRef, title, price, action }: StickyBuyBarProps) {
+export function StickyBuyBar({ targetRef, title, price, action, error }: StickyBuyBarProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export function StickyBuyBar({ targetRef, title, price, action }: StickyBuyBarPr
         </div>
         {action}
       </div>
+      {error && <p className="mt-2 text-sm text-terracotta">{error}</p>}
     </div>
   );
 }

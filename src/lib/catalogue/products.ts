@@ -26,7 +26,7 @@ const MAX_PAGE_SIZE = 180;
 
 // Money columns are cast to text so numeric(10,2) values arrive as exact strings.
 const CARD_COLUMNS =
-  "id, slug, name, price::text, compare_at_price::text, category_id, categories(name), product_variants(price::text, stock), product_images(url, alt)";
+  "id, slug, name, price::text, compare_at_price::text, category_id, categories(name), product_variants(id, price::text, stock), product_images(url, alt)";
 
 /** Product row as selected by CARD_COLUMNS. */
 export type ProductCardRow = {
@@ -37,7 +37,7 @@ export type ProductCardRow = {
   compare_at_price: Money | null;
   category_id: string | null;
   categories: { name: string } | null;
-  product_variants: { price: Money; stock: number }[];
+  product_variants: { id: string; price: Money; stock: number }[];
   product_images: { url: string; alt: string }[];
 };
 
@@ -57,6 +57,8 @@ export function toProductCard(row: ProductCardRow, categoryName = row.categories
     image: image ? { src: image.url, alt: image.alt || row.name } : undefined,
     priceFrom: new Set(row.product_variants.map((variant) => variant.price)).size > 1,
     inStock: row.product_variants.some((variant) => variant.stock > 0),
+    // One model: the card's "+" adds it straight to the bag; several: "+" opens the product page.
+    bagItem: row.product_variants.length === 1 ? { productId: row.id, variantId: row.product_variants[0].id } : undefined,
   };
 }
 

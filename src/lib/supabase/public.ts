@@ -12,8 +12,10 @@ export const CATALOGUE_REVALIDATE_SECONDS = 3600;
  * only returns active rows, and never touches cookies, so pages using it can be
  * statically rendered and revalidated. Use the cookie client in ./server for anything
  * user-specific.
+ *
+ * `fresh` skips the cache, for reads that must see the current price and stock (the bag).
  */
-export function createPublicClient() {
+export function createPublicClient({ fresh = false }: { fresh?: boolean } = {}) {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -21,10 +23,12 @@ export function createPublicClient() {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
       global: {
         fetch: (input, init) =>
-          fetch(input, {
-            ...init,
-            next: { revalidate: CATALOGUE_REVALIDATE_SECONDS, tags: [CATALOGUE_TAG] },
-          }),
+          fetch(
+            input,
+            fresh
+              ? { ...init, cache: "no-store" }
+              : { ...init, next: { revalidate: CATALOGUE_REVALIDATE_SECONDS, tags: [CATALOGUE_TAG] } },
+          ),
       },
     },
   );
