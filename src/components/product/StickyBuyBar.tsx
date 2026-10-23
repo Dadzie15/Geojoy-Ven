@@ -11,26 +11,32 @@ type StickyBuyBarProps = {
   action: ReactNode;
   /** Why the last add failed, shown under the bar's row (the main button's message is the announced one). */
   error?: string | null;
+  /**
+   * "past" (product page): shows once the target has scrolled up out of view. "offscreen" (Cart, whose
+   * summary sits at the bottom on phones): shows whenever the target is not on screen, above or below.
+   */
+  showWhen?: "past" | "offscreen";
 };
 
 /**
- * Phones only (under 768 px): price and the main action fixed to the bottom. While shown it carries
+ * Phones only (under 768 px): price and the main action fixed to the bottom (product page: Add to cart;
+ * Cart: Total and Checkout). While shown it carries
  * `data-sticky-buy-bar`, which lifts the floating WhatsApp button above it and pads the page bottom.
  */
-export function StickyBuyBar({ targetRef, title, price, action, error }: StickyBuyBarProps) {
+export function StickyBuyBar({ targetRef, title, price, action, error, showWhen = "past" }: StickyBuyBarProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const target = targetRef.current;
     if (!target) return;
-    // The root reaches far below the screen, so the buttons only stop "intersecting" once they are above it.
-    // (Checking boundingClientRect instead misses a jump from below the fold straight past them.)
+    // "past": the root reaches far below the screen, so the buttons only stop "intersecting" once they are
+    // above it. (Checking boundingClientRect instead misses a jump from below the fold straight past them.)
     const observer = new IntersectionObserver(([entry]) => setVisible(!entry.isIntersecting), {
-      rootMargin: "0px 0px 100000px 0px",
+      rootMargin: showWhen === "past" ? "0px 0px 100000px 0px" : "0px",
     });
     observer.observe(target);
     return () => observer.disconnect();
-  }, [targetRef]);
+  }, [targetRef, showWhen]);
 
   return (
     <div
