@@ -13,6 +13,10 @@ type BagContextValue = {
    * Resolves to an error message, or null on success.
    */
   add: (input: AddToBagInput, opener: HTMLElement | null) => Promise<string | null>;
+  /** Sets the header count from a bag the server returned (Cart page changes). */
+  syncCount: (count: number) => void;
+  /** Reads a short message to screen readers, e.g. "Hot Plate removed from your bag". */
+  announce: (message: string) => void;
 };
 
 const BagContext = createContext<BagContextValue | null>(null);
@@ -72,11 +76,27 @@ export function BagProvider({ children }: { children: ReactNode }) {
     setOpen(false);
   }, []);
 
-  const value = useMemo(() => ({ count, add }), [count, add]);
+  const syncCount = useCallback((value: number) => {
+    changes.current += 1;
+    setCount(value);
+  }, []);
+
+  // Lives here, not on the page, so it outlasts the line that was removed.
+  const [message, setMessage] = useState("");
+  const announce = useCallback((text: string) => {
+    // Cleared first, so the same message twice in a row is still read out.
+    setMessage("");
+    requestAnimationFrame(() => setMessage(text));
+  }, []);
+
+  const value = useMemo(() => ({ count, add, syncCount, announce }), [count, add, syncCount, announce]);
 
   return (
     <BagContext.Provider value={value}>
       {children}
+      <p aria-live="polite" role="status" className="sr-only">
+        {message}
+      </p>
       <BagDrawer open={open} added={added} onClose={close} returnFocusRef={openerRef} />
     </BagContext.Provider>
   );

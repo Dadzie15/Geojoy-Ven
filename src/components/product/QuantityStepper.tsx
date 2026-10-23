@@ -6,16 +6,20 @@ type QuantityStepperProps = {
   /** The selected model's stock. 0 disables the stepper. */
   max: number;
   onChange: (value: number) => void;
+  /** Group label; the Cart names the product ("Quantity of Electric Kettle"). */
+  label?: string;
+  /** Both buttons off, e.g. while the Cart saves a change. */
+  disabled?: boolean;
 };
 
 const stepClasses =
   "grid size-11 place-items-center rounded-input text-ink transition-colors hover:bg-sand-tint disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent motion-reduce:transition-none";
 
 /** − value + between 1 and the stock. */
-export function QuantityStepper({ value, max, onChange }: QuantityStepperProps) {
-  const disabled = max <= 0;
+export function QuantityStepper({ value, max, onChange, label = "Quantity", disabled: busy = false }: QuantityStepperProps) {
+  const disabled = max <= 0 || busy;
   return (
-    <div role="group" aria-label="Quantity" className="flex h-11 shrink-0 items-center rounded-input border border-line">
+    <div role="group" aria-label={label} className="flex h-11 shrink-0 items-center rounded-input border border-line">
       <button
         type="button"
         aria-label="Decrease quantity"
